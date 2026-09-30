@@ -40,7 +40,7 @@ public class Layer
             biases[i] = 0;
         }
     }
-    public double[,] foward(double[,] inputs)
+    public double[,] forward(double[,] inputs)
     {
         double[,] outputs = new double[inputs.GetLength(0), weights.GetLength(1)];
         for (int i = 0; i < inputs.GetLength(0); i++)
@@ -68,15 +68,24 @@ class program
 
         Layer layer1 = new Layer(4, 5);
         Layer layer2 = new Layer(5, 2);
-                
-        for(int i =0; i < layer1.foward(StartData).GetLength(0); i++)
+
+        for(int i =0; i < layer1.forward(StartData).GetLength(0); i++)
         {
-            for(int j = 0; j < layer1.foward(StartData).GetLength(1); j++)
+            for(int j = 0; j < layer1.forward(StartData).GetLength(1); j++)
             {
-                Console.Write(layer1.foward(StartData)[i, j] + " ");
+                Console.Write(layer1.forward(StartData)[i, j] + " ");
             }
             Console.WriteLine();
         }
         
+        for(int i =0; i < layer2.forward(layer1.forward(StartData)).GetLength(0); i++)
+        {
+            for(int j = 0; j < layer2.forward(layer1.forward(StartData)).GetLength(1); j++)
+            {
+                Console.Write(layer2.forward(layer1.forward(StartData))[i, j] + " ");
+            }
+            Console.WriteLine();
+        }
+        layer2.forward(layer1.forward(StartData));
     }
 }
