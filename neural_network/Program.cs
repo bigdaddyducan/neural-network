@@ -23,6 +23,7 @@ public class Layer
 {
     Random rand = new Random();
     public double[,] weights;
+    public double[] biases;
     public Layer(int n_inputs, int n_neurons)
     {
         this.weights = new double[n_inputs,n_neurons];
@@ -33,6 +34,29 @@ public class Layer
                 weights[i, j] = rand.NextDouble() * 2 - 1;
             }
         }
+        this.biases = new double[n_neurons];
+        for (int i = 0; i < n_neurons; i++)
+        {
+            biases[i] = 0;
+        }
+    }
+    public double[,] foward(double[,] inputs)
+    {
+        double[,] outputs = new double[inputs.GetLength(0), weights.GetLength(1)];
+        for (int i = 0; i < inputs.GetLength(0); i++)
+        {
+            for (int j = 0; j < weights.GetLength(1); j++)
+            {
+                double sum = 0;
+                for (int k = 0; k < weights.GetLength(0); k++)
+                {
+                    sum += inputs[i, k] * weights[k, j];
+                }
+                sum += biases[j];
+                outputs[i, j] = sum;
+            }
+        }
+        return outputs;
     }
 }
 
@@ -40,15 +64,19 @@ class program
 {
     static void Main(string[] args)
     {
-        Layer layer1 = new Layer(3, 4);
+        double[,] StartData = new double[,] { { 1, 2, 3, 1.5 }, { -0.5, -0.75, 2, -1.0}, { -1.5, 2.7, 3.3, -0.8} };
 
-        for (int i = 0; i < layer1.weights.GetLength(0); i++)
+        Layer layer1 = new Layer(4, 5);
+        Layer layer2 = new Layer(5, 2);
+                
+        for(int i =0; i < layer1.foward(StartData).GetLength(0); i++)
         {
-            for (int j = 0; j < layer1.weights.GetLength(1); j++)
+            for(int j = 0; j < layer1.foward(StartData).GetLength(1); j++)
             {
-                Console.Write(layer1.weights[i, j] + " ");
+                Console.Write(layer1.foward(StartData)[i, j] + " ");
             }
             Console.WriteLine();
         }
+        
     }
 }
