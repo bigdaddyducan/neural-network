@@ -30,7 +30,7 @@ public class Layer
         {
             for (int j = 0; j < n_neurons; j++)
             {
-                weights[i, j] = rand.NextDouble();
+                weights[i, j] = rand.NextDouble() * 2 - 1;
             }
         }
     }
@@ -42,9 +42,9 @@ class program
     {
         Layer layer1 = new Layer(3, 4);
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < layer1.weights.GetLength(0); i++)
         {
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < layer1.weights.GetLength(1); j++)
             {
                 Console.Write(layer1.weights[i, j] + " ");
             }
