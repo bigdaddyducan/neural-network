@@ -144,7 +144,14 @@ class program
 {
     static void Main(string[] args)
     {
-        double[,] StartData = new double[,] { { 1, 2, 3, 1.5 }, { -0.5, -0.75, 2, -1.0}, { -1.5, 2.7, 3.3, -0.8} };
+        
+         SpiralDataset dataset = SpiralData.Generate(
+            pointsPerClass: 100,
+            classes: 3,
+            random: new Random(0));
+            
+            double[,] StartData = dataset.Inputs;
+            int[] labels = dataset.Labels;
 
         Layer layer1 = new Layer(4, 3);
         ActivationFunction activationFunction = new ActivationFunction();
