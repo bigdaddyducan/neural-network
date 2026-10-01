@@ -15,10 +15,24 @@ public class Neuron
         }
         sum += bias;
         return sum;
-        //return output = activationFunction(sum);
+    }
+
+}
+public class ActivationFunction()
+{
+    public double[,] Forward(double[,] x)
+    {
+        //ReLU activation function
+        for (int i = 0; i < x.GetLength(0); i++)
+        {
+            for (int j = 0; j < x.GetLength(1); j++)
+            {
+                x[i,j] = x[i,j] > 0 ? x[i,j] : 0;
+            }
+        }
+        return x;
     }
 }
-
 public class Layer
 {
     Random rand = new Random();
@@ -67,7 +81,8 @@ class program
         double[,] StartData = new double[,] { { 1, 2, 3, 1.5 }, { -0.5, -0.75, 2, -1.0}, { -1.5, 2.7, 3.3, -0.8} };
 
         Layer layer1 = new Layer(4, 5);
-        Layer layer2 = new Layer(5, 2);
+        ActivationFunction activationFunction = new ActivationFunction();
+        double[,] output = layer1.forward(StartData);
 
         for(int i =0; i < layer1.forward(StartData).GetLength(0); i++)
         {
@@ -77,15 +92,20 @@ class program
             }
             Console.WriteLine();
         }
-        
-        for(int i =0; i < layer2.forward(layer1.forward(StartData)).GetLength(0); i++)
+        Console.WriteLine("After Activation Function:");
+        activationFunction.Forward(layer1.forward(StartData));
+
+        output = activationFunction.Forward(layer1.forward(StartData));
+
+        for (int i = 0; i < output.GetLength(0); i++)
         {
-            for(int j = 0; j < layer2.forward(layer1.forward(StartData)).GetLength(1); j++)
+            for (int j = 0; j < output.GetLength(1); j++)
             {
-                Console.Write(layer2.forward(layer1.forward(StartData))[i, j] + " ");
+                Console.Write(output[i, j] + " ");
             }
             Console.WriteLine();
         }
-        layer2.forward(layer1.forward(StartData));
+ 
+        
     }
 }
