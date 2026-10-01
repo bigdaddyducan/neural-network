@@ -101,21 +101,35 @@ public class ActivationSoftmax()
 
 public class Loss()
 {
-    double forward(double[,] y_pred, double[] y_true)
+    public double Calculate(double[,] y_pred, int[] labels)
+    {
+        double[] sampleLosses = forward(y_pred, labels);
+        double TotalLoss = 0;
+
+        for (int i = 0; i < sampleLosses.Length; i++)
+        {
+            TotalLoss += sampleLosses[i];
+        }
+        return TotalLoss / sampleLosses.Length;
+    }
+}
+public class LossCategoricalCrossentropy : Loss
+{
+    public double[] forward(double[,] y_pred, int[] labels)
     {
         int samples = y_pred.GetLength(0);
-        double[,] y_pred_clipped = new double[y_pred.GetLength(0), y_pred.GetLength(1)];
-        for(int i = 0; i < y_pred.GetLength(0); i++)
+        int classes = y_pred.GetLength(1);
+        double[] negativeLogLikelihoods = new double[samples];
+    
+        for (int i = 0; i < samples; i++)
         {
-            for(int j = 0; j < y_pred.GetLength(1); j++)
-            {
-                y_pred_clipped[i,j] = Math.Clamp(y_pred[i,j], 1e-7, 1 - 1e-7);
-            }
+            int correctClass = labels[i];
+            double correct_confidence = y_pred[i, correctClass];
+            double clipped_confidence = Math.Clamp(correct_confidence, 1e-7, 1 - 1e-7);
+            negativeLogLikelihoods[i] = -Math.Log(clipped_confidence);
         }
-        double[] correct_confidences = new double[Enumerable.Range(),];
+        return negativeLogLikelihoods;
     }
-
-
 }
 
 public class Layer
