@@ -32,6 +32,35 @@ public class ActivationFunction()
         }
         return x;
     }
+    public double[,] softmax(double[,] outputs)
+    {
+        double E = 2.71828182846;
+        double[,] exp_values = new double[outputs.GetLength(0), outputs.GetLength(1)];
+        for (int i = 0; i < outputs.GetLength(0); i++)
+        {
+            for (int j = 0; j < outputs.GetLength(1); j++)
+            {
+                exp_values[i, j] = Math.Pow(E, outputs[i, j]);
+            }
+        }
+        double norm_base = 0;
+        double[,] norm_values = new double[exp_values.GetLength(0), exp_values.GetLength(1)];
+        for (int i = 0; i < exp_values.GetLength(0); i++)
+        {
+        for (int j = 0; j < exp_values.GetLength(1); j++)
+        {
+            norm_base += exp_values[i, j];
+        }
+        }
+        for (int i = 0; i < exp_values.GetLength(0); i++)
+        {
+            for (int j = 0; j < exp_values.GetLength(1); j++)
+            {
+                norm_values[i, j] = exp_values[i, j] / norm_base;
+            }
+        }
+        return norm_values;
+    }
 }
 public class Layer
 {
@@ -72,6 +101,7 @@ public class Layer
         }
         return outputs;
     }
+    
 }
 
 class program
@@ -105,53 +135,16 @@ class program
             }
             Console.WriteLine();
         }
-        double E = 2.71828182846;
-        double[,] exp_values = new double[output.GetLength(0), output.GetLength(1)];
-
+        output = activationFunction.softmax(output);
+        double sum = 0;
         for (int i = 0; i < output.GetLength(0); i++)
         {
+            
             for (int j = 0; j < output.GetLength(1); j++)
             {
-                exp_values[i, j] = Math.Pow(E, output[i, j]);
+                sum += output[i, j];
             }
         }
-        Console.WriteLine("After softmax Function:");
-        for (int i = 0; i < exp_values.GetLength(0); i++)
-        {
-            for (int j = 0; j < exp_values.GetLength(1); j++)
-            {
-                Console.Write(exp_values[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
-        double [,] Normalisation(double[,] exp_values)
-        {
-            double norm_base = 0;
-            double[,] norm_values = new double[exp_values.GetLength(0), exp_values.GetLength(1)];
-            for (int i = 0; i < exp_values.GetLength(0); i++)
-            {
-                for (int j = 0; j < exp_values.GetLength(1); j++)
-                {
-                    norm_base += exp_values[i, j];
-                }
-            }
-            for (int i = 0; i < exp_values.GetLength(0); i++)
-            {
-                for (int j = 0; j < exp_values.GetLength(1); j++)
-                {
-                    norm_values[i, j] = exp_values[i, j] / norm_base;
-                }
-            }
-            return norm_values;
-        }
-        output = Normalisation(exp_values);
-        for (int i = 0; i < output.GetLength(0); i++)
-        {
-            for (int j = 0; j < output.GetLength(1); j++)
-            {
-                Console.Write(output[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
+        Console.WriteLine(sum);
     }
 }
