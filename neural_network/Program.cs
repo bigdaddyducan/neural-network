@@ -32,15 +32,30 @@ public class ActivationFunction()
         }
         return x;
     }
+
+}
+public class ActivationSoftmax()
+{
     public double[,] softmax(double[,] outputs)
     {
-        double E = 2.71828182846;
         double[,] exp_values = new double[outputs.GetLength(0), outputs.GetLength(1)];
+        double[,] max_values = new double[outputs.GetLength(0), 1];
+        for (int i = 0; i < outputs.GetLength(0); i++)
+        {
+            max_values[i, 0] = outputs[i, 0];
+            for (int j = 1; j < outputs.GetLength(1); j++)
+            {
+                if (outputs[i, j] > max_values[i, 0])
+                {
+                    max_values[i, 0] = outputs[i, j];
+                }
+            }
+        }
         for (int i = 0; i < outputs.GetLength(0); i++)
         {
             for (int j = 0; j < outputs.GetLength(1); j++)
             {
-                exp_values[i, j] = Math.Pow(E, outputs[i, j]);
+                exp_values[i, j] = Math.Exp(outputs[i, j] - max_values[i, 0]);
             }
         }
         double[,] norm_values = new double[exp_values.GetLength(0), exp_values.GetLength(1)];
@@ -59,6 +74,7 @@ public class ActivationFunction()
                 norm_values[i, j] = exp_values[i, j] / sum_values[i, 0];
             }
         }
+        /*
         Console.WriteLine("Sum Values:\n\n\n");
         for (int i = 0; i < sum_values.GetLength(0); i++)
         {
@@ -68,7 +84,7 @@ public class ActivationFunction()
             }
             Console.WriteLine();
         }
-
+        
         Console.WriteLine("After Softmax:\n\n\n");
         for (int i = 0; i < norm_values.GetLength(0); i++)
         {
@@ -78,6 +94,7 @@ public class ActivationFunction()
             }
             Console.WriteLine();
         }
+        */
         return norm_values;
     }
 }
@@ -131,6 +148,7 @@ class program
 
         Layer layer1 = new Layer(4, 3);
         ActivationFunction activationFunction = new ActivationFunction();
+        ActivationSoftmax softMaxFunction = new ActivationSoftmax();
         double[,] output = layer1.forward(StartData);
 
         for(int i =0; i < layer1.forward(StartData).GetLength(0); i++)
@@ -154,18 +172,19 @@ class program
             }
             Console.WriteLine();
         }
-        output = activationFunction.softmax(output);
-        /*
+        output = softMaxFunction.softmax(output);
+        
         double sum = 0;
         for (int i = 0; i < output.GetLength(0); i++)
         {
-            
+            sum = 0;
             for (int j = 0; j < output.GetLength(1); j++)
             {
                 sum += output[i, j];
             }
+            Console.WriteLine(sum);
         }
-        Console.WriteLine(sum);
-        */
+        
+        
     }
 }
