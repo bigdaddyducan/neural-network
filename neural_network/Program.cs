@@ -103,7 +103,8 @@ public class Loss()
 {
     public double Calculate(double[,] y_pred, int[] labels)
     {
-        double[] sampleLosses = forward(y_pred, labels);
+        LossCategoricalCrossentropy loss = new LossCategoricalCrossentropy();
+        double[] sampleLosses = loss.forward(y_pred, labels);
         double TotalLoss = 0;
 
         for (int i = 0; i < sampleLosses.Length; i++)
@@ -192,12 +193,14 @@ class program
         ActivationFunction activationFunction = new ActivationFunction();
         Layer layer2 = new Layer(3, 3);
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
+        LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
+        Loss loss = new Loss();
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
         outputs = layer1.forward(StartData); 
         outputs = activationFunction.Forward(outputs);
         outputs = layer2.forward(outputs); 
         outputs = activationSoftmax.softmax(outputs);
-
+        double lossValue = loss.Calculate(outputs, labels);
         for (int i = 0; i < outputs.GetLength(0); i++)
         {
             for (int j = 0; j < outputs.GetLength(1); j++)
@@ -206,6 +209,8 @@ class program
             }
             Console.WriteLine();
         }
+
+        Console.WriteLine("\n\nLoss Value: " + lossValue);
         
     }
 }
