@@ -98,8 +98,29 @@ public class ActivationSoftmax()
         return norm_values;
     }
 }
+
+public class Loss()
+{
+    double forward(double[,] y_pred, double[] y_true)
+    {
+        int samples = y_pred.GetLength(0);
+        double[,] y_pred_clipped = new double[y_pred.GetLength(0), y_pred.GetLength(1)];
+        for(int i = 0; i < y_pred.GetLength(0); i++)
+        {
+            for(int j = 0; j < y_pred.GetLength(1); j++)
+            {
+                y_pred_clipped[i,j] = Math.Clamp(y_pred[i,j], 1e-7, 1 - 1e-7);
+            }
+        }
+        double[] correct_confidences = new double[Enumerable.Range(),];
+    }
+
+
+}
+
 public class Layer
 {
+    public double [,] outputs;
     Random rand = new Random();
     public double[,] weights;
     public double[] biases;
@@ -137,7 +158,6 @@ public class Layer
         }
         return outputs;
     }
-    
 }
 
 class program
@@ -153,45 +173,25 @@ class program
             double[,] StartData = dataset.Inputs;
             int[] labels = dataset.Labels;
 
-        Layer layer1 = new Layer(4, 3);
+
+        Layer layer1 = new Layer(2, 3);
         ActivationFunction activationFunction = new ActivationFunction();
-        ActivationSoftmax softMaxFunction = new ActivationSoftmax();
-        double[,] output = layer1.forward(StartData);
+        Layer layer2 = new Layer(3, 3);
+        ActivationSoftmax activationSoftmax = new ActivationSoftmax();
+        double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
+        outputs = layer1.forward(StartData); 
+        outputs = activationFunction.Forward(outputs);
+        outputs = layer2.forward(outputs); 
+        outputs = activationSoftmax.softmax(outputs);
 
-        for(int i =0; i < layer1.forward(StartData).GetLength(0); i++)
+        for (int i = 0; i < outputs.GetLength(0); i++)
         {
-            for(int j = 0; j < layer1.forward(StartData).GetLength(1); j++)
+            for (int j = 0; j < outputs.GetLength(1); j++)
             {
-                Console.Write(layer1.forward(StartData)[i, j] + " ");
+                Console.Write(outputs[i, j] + " ");
             }
             Console.WriteLine();
         }
-        Console.WriteLine("After Activation Function:");
-        activationFunction.Forward(layer1.forward(StartData));
-
-        output = activationFunction.Forward(layer1.forward(StartData));
-
-        for (int i = 0; i < output.GetLength(0); i++)
-        {
-            for (int j = 0; j < output.GetLength(1); j++)
-            {
-                Console.Write(output[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
-        output = softMaxFunction.softmax(output);
-        
-        double sum = 0;
-        for (int i = 0; i < output.GetLength(0); i++)
-        {
-            sum = 0;
-            for (int j = 0; j < output.GetLength(1); j++)
-            {
-                sum += output[i, j];
-            }
-            Console.WriteLine(sum);
-        }
-        
         
     }
 }
