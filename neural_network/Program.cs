@@ -43,21 +43,40 @@ public class ActivationFunction()
                 exp_values[i, j] = Math.Pow(E, outputs[i, j]);
             }
         }
-        double norm_base = 0;
         double[,] norm_values = new double[exp_values.GetLength(0), exp_values.GetLength(1)];
+        double[,] sum_values = new double[exp_values.GetLength(0), 1];
         for (int i = 0; i < exp_values.GetLength(0); i++)
         {
-        for (int j = 0; j < exp_values.GetLength(1); j++)
-        {
-            norm_base += exp_values[i, j];
-        }
+            for (int j = 0; j < exp_values.GetLength(1); j++)
+            {
+                sum_values[i, 0] += exp_values[i, j];
+            }
         }
         for (int i = 0; i < exp_values.GetLength(0); i++)
         {
             for (int j = 0; j < exp_values.GetLength(1); j++)
             {
-                norm_values[i, j] = exp_values[i, j] / norm_base;
+                norm_values[i, j] = exp_values[i, j] / sum_values[i, 0];
             }
+        }
+        Console.WriteLine("Sum Values:\n\n\n");
+        for (int i = 0; i < sum_values.GetLength(0); i++)
+        {
+            for (int j = 0; j < sum_values.GetLength(1); j++)
+            {
+                Console.Write(sum_values[i, j] + " ");
+            }
+            Console.WriteLine();
+        }
+
+        Console.WriteLine("After Softmax:\n\n\n");
+        for (int i = 0; i < norm_values.GetLength(0); i++)
+        {
+            for (int j = 0; j < norm_values.GetLength(1); j++)
+            {
+                Console.Write(norm_values[i, j] + " ");
+            }
+            Console.WriteLine();
         }
         return norm_values;
     }
@@ -110,7 +129,7 @@ class program
     {
         double[,] StartData = new double[,] { { 1, 2, 3, 1.5 }, { -0.5, -0.75, 2, -1.0}, { -1.5, 2.7, 3.3, -0.8} };
 
-        Layer layer1 = new Layer(4, 2);
+        Layer layer1 = new Layer(4, 3);
         ActivationFunction activationFunction = new ActivationFunction();
         double[,] output = layer1.forward(StartData);
 
@@ -136,6 +155,7 @@ class program
             Console.WriteLine();
         }
         output = activationFunction.softmax(output);
+        /*
         double sum = 0;
         for (int i = 0; i < output.GetLength(0); i++)
         {
@@ -146,5 +166,6 @@ class program
             }
         }
         Console.WriteLine(sum);
+        */
     }
 }
