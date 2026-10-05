@@ -379,6 +379,30 @@ class program
 {
     static void Main(string[] args)
     {
+        if (args.Length == 1 &&
+    args[0].Equals(
+        "load-model",
+        StringComparison.OrdinalIgnoreCase
+    ))
+{
+    LoadedKanjiModel loadedModel =
+        ModelPersistence.LoadFromEnvironment();
+
+    Console.WriteLine("Model loaded successfully.");
+    Console.WriteLine(
+        $"Architecture: " +
+        $"{loadedModel.Metadata.InputFeatureCount} → " +
+        $"{loadedModel.Metadata.HiddenNeuronCount} → " +
+        $"{loadedModel.Metadata.OutputClassCount}"
+    );
+
+    Console.WriteLine(
+        $"Classes: {string.Join(", ", loadedModel.Metadata.ClassKanji)}"
+    );
+
+    return;
+}
+
         KanjiImageDataset dataset =
         kanjiDataset.LoadAllFromEnvironment();
         KanjiDataSplit split = KanjiSplit.Create(

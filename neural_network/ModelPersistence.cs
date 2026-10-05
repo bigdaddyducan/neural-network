@@ -95,7 +95,8 @@ public static class ModelPersistence
             Layer2Weights = ToMatrixData(layer2.weights),
             Layer2Biases = (double[])layer2.biases.Clone()
         };
-
+        
+        
         string? directory = Path.GetDirectoryName(modelPath);
 
         if (!string.IsNullOrWhiteSpace(directory))
@@ -110,6 +111,168 @@ public static class ModelPersistence
 
         File.WriteAllText(modelPath, json);
     }
+    public static LoadedKanjiModel LoadFromEnvironment()
+{
+    string? modelPath =
+        Environment.GetEnvironmentVariable("KANJI_MODEL_PATH");
+
+    if (string.IsNullOrWhiteSpace(modelPath))
+    {
+        throw new InvalidOperationException(
+            "KANJI_MODEL_PATH is not set."
+        );
+    }
+
+    return Load(modelPath);
+}
+
+public static LoadedKanjiModel Load(string modelPath)
+{
+    if (!File.Exists(modelPath))
+    {
+        throw new FileNotFoundException(
+            $"Saved model was not found: {modelPath}"
+        );
+    }
+
+    string json = File.ReadAllText(modelPath);
+
+    ModelCheckpoint? checkpoint =
+        JsonSerializer.Deserialize<ModelCheckpoint>(json);
+
+    if (checkpoint is null)
+    {
+        throw new InvalidOperationException(
+            "The model checkpoint could not be read."
+        );
+    }
+
+    ValidateCheckpoint(checkpoint);
+
+    Layer layer1 = new Layer(
+        checkpoint.InputFeatureCount,
+        checkpoint.HiddenNeuronCount
+    );
+
+    Layer layer2 = new Layer(
+        checkpoint.HiddenNeuronCount,
+        checkpoint.OutputClassCount
+    );
+
+    layer1.weights = FromMatrixData(checkpoint.Layer1Weights);
+    layer1.biases = (double[])checkpoint.Layer1Biases.Clone();
+
+    layer2.weights = FromMatrixData(checkpoint.Layer2Weights);
+    layer2.biases = (double[])checkpoint.Layer2Biases.Clone();
+
+    return new LoadedKanjiModel(
+        layer1,
+        layer2,
+        checkpoint
+    );
+}
+
+private static void ValidateCheckpoint(
+    ModelCheckpoint checkpoint
+)
+{
+    if (checkpoint.FormatVersion != 1)
+    {
+        throw new InvalidOperationException(
+            $"Unsupported checkpoint version: " +
+            $"{checkpoint.FormatVersion}"
+        );
+    }
+
+    if (checkpoint.Layer1Weights.Rows !=
+        checkpoint.InputFeatureCount ||
+        checkpoint.Layer1Weights.Columns !=
+        checkpoint.HiddenNeuronCount)
+    {
+        throw new InvalidOperationException(
+            "Layer 1 weight dimensions do not match " +
+            "the saved architecture."
+        );
+    }
+
+    if (checkpoint.Layer2Weights.Rows !=
+        checkpoint.HiddenNeuronCount ||
+        checkpoint.Layer2Weights.Columns !=
+        checkpoint.OutputClassCount)
+    {
+        throw new InvalidOperationException(
+            "Layer 2 weight dimensions do not match " +
+            "the saved architecture."
+        );
+    }
+
+    if (checkpoint.Layer1Biases.Length !=
+        checkpoint.HiddenNeuronCount)
+    {
+        throw new InvalidOperationException(
+            "Layer 1 bias count is invalid."
+        );
+    }
+
+    if (checkpoint.Layer2Biases.Length !=
+        checkpoint.OutputClassCount)
+    {
+        throw new InvalidOperationException(
+            "Layer 2 bias count is invalid."
+        );
+    }
+
+    if (checkpoint.ClassKanji.Length !=
+        checkpoint.OutputClassCount)
+    {
+        throw new InvalidOperationException(
+            "The saved class mapping does not match " +
+            "the number of output neurons."
+        );
+    }
+}
+
+private static double[,] FromMatrixData(MatrixData matrixData)
+{
+    if (matrixData.Rows <= 0 || matrixData.Columns <= 0)
+    {
+        throw new InvalidOperationException(
+            "Saved matrix dimensions must be positive."
+        );
+    }
+
+    int expectedValueCount =
+        matrixData.Rows * matrixData.Columns;
+
+    if (matrixData.Values.Length != expectedValueCount)
+    {
+        throw new InvalidOperationException(
+            "Saved matrix value count does not match " +
+            "its dimensions."
+        );
+    }
+
+    double[,] matrix = new double[
+        matrixData.Rows,
+        matrixData.Columns
+        ];
+
+    for (int row = 0; row < matrixData.Rows; row++)
+    {
+        for (int column = 0;
+             column < matrixData.Columns;
+             column++)
+        {
+            int index = row * matrixData.Columns + column;
+
+            matrix[row, column] =
+                matrixData.Values[index];
+        }
+    }
+
+    return matrix;
+}
+
 
     private static MatrixData ToMatrixData(double[,] matrix)
     {
@@ -135,3 +298,8 @@ public static class ModelPersistence
         };
     }
 }
+public sealed record LoadedKanjiModel(
+    Layer Layer1,
+    Layer Layer2,
+    ModelCheckpoint Metadata
+);
