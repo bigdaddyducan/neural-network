@@ -2,6 +2,7 @@
 public class ActivationFunction()
 {
     public double[,] ReLUCache;
+    public double[,] dValues;
     void ReLUCaching(double[,] x)
     {
         ReLUCache = new double[x.GetLength(0), x.GetLength(1)];
@@ -26,7 +27,25 @@ public class ActivationFunction()
         }
         return x;
     }
-
+    public double[,] Backward(double[,] dInputs)
+    {
+        dInputs = new double[dValues.GetLength(0), dValues.GetLength(1)];
+        for (int i = 0; i < dValues.GetLength(0);i++)
+        {
+            for (int j = 0; j < dValues.GetLength(1);j++)
+            {
+                if (ReLUCache[i,j] <= 0)
+                {
+                    dInputs[i,j] = 0;
+                }
+                else
+                {
+                    dInputs[i,j] = dValues[i,j];
+                }
+            }
+        }
+        return dInputs;
+    }
 }
 public class ActivationSoftmax()
 {
