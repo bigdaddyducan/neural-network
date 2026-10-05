@@ -2,9 +2,20 @@
 public class ActivationFunction()
 {
     public double[,] ReLUCache;
+    void ReLUCaching(double[,] x)
+    {
+        ReLUCache = new double[x.GetLength(0), x.GetLength(1)];
+        for (int i = 0; i < x.GetLength(0); i++)
+        {
+            for (int j = 0; j < x.GetLength(1); j++)
+            {
+                ReLUCache[i,j] = x[i,j];
+            }
+        }
+    }
     public double[,] Forward(double[,] x)
     {
-        ReLUCache = x;
+        ReLUCaching(x);
         //ReLU activation function
         for (int i = 0; i < x.GetLength(0); i++)
         {
@@ -98,7 +109,6 @@ public class LossCategoricalCrossentropy : Loss
 
 public class Layer
 {
-    public double [,] outputs;
     public double[,] LayerCache;
     Random rand = new Random();
     public double[,] weights;
