@@ -272,6 +272,7 @@ class program
         double lossValue = loss.Calculate(outputs, labels);
         double[,] dInputs = activationSoftmax.Backward(outputs, labels);
         dInputs = layer2.backward(dInputs);
+        dInputs = activationFunction.Backward(dInputs);
         /*
         for (int i = 0; i < outputs.GetLength(0); i++)
         {
