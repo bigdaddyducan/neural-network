@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 *.swp
 
 /models/
+
+/neural_network/models/
