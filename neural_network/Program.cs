@@ -389,25 +389,9 @@ class program
 
 double[,] StartData = split.TrainInputs;
 int[] labels = split.TrainLabels;
-
-Console.WriteLine(
-    $"Training: {split.TrainInputs.GetLength(0)} x " +
-    $"{split.TrainInputs.GetLength(1)}"
-);
-
-Console.WriteLine(
-    $"Test: {split.TestInputs.GetLength(0)} x " +
-    $"{split.TestInputs.GetLength(1)}"
-);
-
-return;
-
-
-
-
         
-        Layer layer1 = new Layer(StartData.GetLength(1), 100);
-        Layer layer2 = new Layer(100, 4);
+        Layer layer1 = new Layer(StartData.GetLength(1), 30);
+        Layer layer2 = new Layer(30, 4);
 
         ActivationFunction activationFunction = new ActivationFunction();
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
@@ -440,7 +424,7 @@ return;
             }
             return (double)correctPredictions / outputs.GetLength(0);
         }
-        foreach (int epoch in Enumerable.Range(0, 11))
+        foreach (int epoch in Enumerable.Range(0, 201))
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
@@ -455,7 +439,7 @@ return;
             layer1.UpdateParameters(0.2);
             layer2.UpdateParameters(0.2);      
             
-            if (epoch % 1 == 0)
+            if (epoch % 10 == 0)
             {
                 Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }
