@@ -2,7 +2,7 @@
 public class ActivationFunction()
 {
     public double[,] ReLUCache;
-    public double[,] dValues;
+    public double[,] dInputs;
     void ReLUCaching(double[,] x)
     {
         ReLUCache = new double[x.GetLength(0), x.GetLength(1)];
@@ -27,7 +27,7 @@ public class ActivationFunction()
         }
         return x;
     }
-    public double[,] Backward(double[,] dInputs)
+    public double[,] Backward(double[,] dValues)
     {
         dInputs = new double[dValues.GetLength(0), dValues.GetLength(1)];
         for (int i = 0; i < dValues.GetLength(0);i++)
