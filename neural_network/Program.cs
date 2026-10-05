@@ -400,7 +400,64 @@ class program
         $"Classes: {string.Join(", ", loadedModel.Metadata.ClassKanji)}"
     );
 
-    return;
+    KanjiImageDataset loadedDataset =
+    kanjiDataset.LoadAllFromEnvironment();
+
+KanjiDataSplit loadedSplit = KanjiSplit.Create(
+    loadedDataset,
+    trainPerClass: 160,
+    seed: 12345
+);
+
+if (loadedSplit.TestInputs.GetLength(1) !=
+    loadedModel.Metadata.InputFeatureCount)
+{
+    throw new InvalidOperationException(
+        "The test image feature count does not match " +
+        "the saved model."
+    );
+}
+
+ActivationFunction loadedActivationFunction =
+    new ActivationFunction();
+
+ActivationSoftmax loadedActivationSoftmax =
+    new ActivationSoftmax();
+
+Loss loadedLoss = new Loss();
+
+double[,] loadedTestOutputs =
+    loadedModel.Layer1.forward(loadedSplit.TestInputs);
+
+loadedTestOutputs =
+    loadedActivationFunction.Forward(loadedTestOutputs);
+
+loadedTestOutputs =
+    loadedModel.Layer2.forward(loadedTestOutputs);
+
+loadedTestOutputs =
+    loadedActivationSoftmax.softmax(loadedTestOutputs);
+
+double loadedTestLoss = loadedLoss.Calculate(
+    loadedTestOutputs,
+    loadedSplit.TestLabels
+);
+
+double loadedTestAccuracy = calculateAccuracy(
+    loadedTestOutputs,
+    loadedSplit.TestLabels
+);
+
+Console.WriteLine();
+Console.WriteLine(
+    $"Saved model test loss: {loadedTestLoss}"
+);
+
+Console.WriteLine(
+    $"Saved model test accuracy: {loadedTestAccuracy}"
+);
+
+return;
 }
 
         KanjiImageDataset dataset =
