@@ -553,7 +553,7 @@ Console.WriteLine(
             return (double)correctPredictions / outputs.GetLength(0);
         }
 
-        foreach (int epoch in Enumerable.Range(0, 11))
+        foreach (int epoch in Enumerable.Range(0, 201))
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
@@ -568,12 +568,12 @@ Console.WriteLine(
             layer1.UpdateParameters(0.2);
             layer2.UpdateParameters(0.2);      
             
-            if (epoch % 1 == 0)
+            if (epoch % 10 == 0)
             {
                 Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }
         }
-return;
+
  
         double[,] testOutputs = layer1.forward(split.TestInputs);
         testOutputs = activationFunction.Forward(testOutputs);
