@@ -256,6 +256,124 @@ public class Layer
         }
     }
 }
+public sealed record KanjiDataSplit(
+    double[,] TrainInputs,
+    int[] TrainLabels,
+    double[,] TestInputs,
+    int[] TestLabels
+);
+
+public static class KanjiSplit
+{
+    public static KanjiDataSplit Create(
+        KanjiImageDataset allData,
+        int trainPerClass,
+        int seed
+    )
+    {
+        const int classCount = 4;
+
+        Random random = new Random(seed);
+
+        List<int> trainIndices = new List<int>();
+        List<int> testIndices = new List<int>();
+
+        for (int label = 0; label < classCount; label++)
+        {
+            List<int> classIndices = new List<int>();
+
+            for (int sample = 0; sample < allData.Labels.Length; sample++)
+            {
+                if (allData.Labels[sample] == label)
+                {
+                    classIndices.Add(sample);
+                }
+            }
+
+            if (classIndices.Count <= trainPerClass)
+            {
+                throw new InvalidOperationException(
+                    $"Label {label} has only {classIndices.Count} samples; " +
+                    $"it needs more than {trainPerClass}."
+                );
+            }
+
+            Shuffle(classIndices, random);
+
+            for (int i = 0; i < classIndices.Count; i++)
+            {
+                if (i < trainPerClass)
+                {
+                    trainIndices.Add(classIndices[i]);
+                }
+                else
+                {
+                    testIndices.Add(classIndices[i]);
+                }
+            }
+        }
+
+        return new KanjiDataSplit(
+            CopyRows(allData.Inputs, allData.Labels, trainIndices),
+            CopyLabels(allData.Labels, trainIndices),
+            CopyRows(allData.Inputs, allData.Labels, testIndices),
+            CopyLabels(allData.Labels, testIndices)
+        );
+    }
+
+    private static void Shuffle(List<int> values, Random random)
+    {
+        for (int i = values.Count - 1; i > 0; i--)
+        {
+            int swapIndex = random.Next(i + 1);
+
+            int temporary = values[i];
+            values[i] = values[swapIndex];
+            values[swapIndex] = temporary;
+        }
+    }
+
+    private static double[,] CopyRows(
+        double[,] sourceInputs,
+        int[] sourceLabels,
+        List<int> sourceIndices
+    )
+    {
+        int featureCount = sourceInputs.GetLength(1);
+
+        double[,] result = new double[
+            sourceIndices.Count,
+            featureCount
+        ];
+
+        for (int row = 0; row < sourceIndices.Count; row++)
+        {
+            int sourceRow = sourceIndices[row];
+
+            for (int feature = 0; feature < featureCount; feature++)
+            {
+                result[row, feature] = sourceInputs[sourceRow, feature];
+            }
+        }
+
+        return result;
+    }
+
+    private static int[] CopyLabels(
+        int[] sourceLabels,
+        List<int> sourceIndices
+    )
+    {
+        int[] result = new int[sourceIndices.Count];
+
+        for (int i = 0; i < sourceIndices.Count; i++)
+        {
+            result[i] = sourceLabels[sourceIndices[i]];
+        }
+
+        return result;
+    }
+}
 
 class program
 {
@@ -263,8 +381,15 @@ class program
     {
         KanjiImageDataset dataset =
         kanjiDataset.LoadAllFromEnvironment();
-        double[,] StartData = dataset.Inputs;
-        int[] labels = dataset.Labels;
+        KanjiDataSplit split = KanjiSplit.Create(
+    dataset,
+    trainPerClass: 160,
+    seed: 12345
+);
+
+double[,] StartData = split.TrainInputs;
+int[] labels = split.TrainLabels;
+
 
 
 
