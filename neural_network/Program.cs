@@ -76,7 +76,7 @@ public class ActivationSoftmax()
         int samples = Probabilites.GetLength(0);
         int classes = Probabilites.GetLength(1);
         double[,] dInputs = new double[samples, classes];
-        int correctClass = 0;
+        int correctClass;
         for (int i = 0; i < samples; i++)
         {
             for (int j = 0; j < classes; j++)
@@ -142,6 +142,9 @@ public class Layer
     Random rand = new Random();
     public double[,] weights;
     public double[] biases;
+    public double[,] dWeights;
+    public double[] dBiases;
+    public double[,] dInputs;
     public Layer(int n_inputs, int n_neurons)
     {
         this.weights = new double[n_inputs,n_neurons];
@@ -177,6 +180,48 @@ public class Layer
         this.LayerCache = inputs;
         return outputs;
     }
+    public double[,] backward(double[,] dValues)
+    {
+        dWeights = new double[LayerCache.GetLength(1), dValues.GetLength(1)];
+        dBiases = new double[dValues.GetLength(1)];
+        dInputs = new double[dValues.GetLength(0), LayerCache.GetLength(1)];
+
+        double total;
+        for (int i = 0; i < LayerCache.GetLength(1); i++)
+        {
+            for (int j = 0; j < dValues.GetLength(1); j++)
+            {
+                total = 0;
+                for (int k = 0; k < dValues.GetLength(0); k++)
+                {
+                    total += LayerCache[k, i] * dValues[k, j];
+                }
+                dWeights[i, j] = total;
+            }
+        }
+        for(int i = 0; i < dValues.GetLength(1); i++)
+        {
+            total = 0;
+            for(int j = 0; j < dValues.GetLength(0); j++)
+            {
+                total += dValues[j, i];
+            }
+            dBiases[i] = total;
+        } 
+        for(int i = 0; i < dValues.GetLength(0); i++)
+        {
+            for (int j = 0; j < LayerCache.GetLength(1); j++)
+            {
+                total = 0;
+                for (int k = 0; k < dValues.GetLength(1); k++)
+                {
+                    total += dValues[k, j] * weights[i, k];
+                }
+                dInputs[i, j] = total;
+            }
+        }
+        return dInputs;
+    }
 }
 
 class program
@@ -207,6 +252,7 @@ class program
         outputs = activationSoftmax.softmax(outputs);
         double lossValue = loss.Calculate(outputs, labels);
         double[,] dInputs = activationSoftmax.Backward(outputs, labels);
+        dInputs = layer2.backward(dInputs);
         /*
         for (int i = 0; i < outputs.GetLength(0); i++)
         {
