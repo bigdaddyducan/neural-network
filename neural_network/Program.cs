@@ -278,9 +278,9 @@ class program
 
 
         
-        Layer layer1 = new Layer(2, 100);
+        Layer layer1 = new Layer(2, 10);
         ActivationFunction activationFunction = new ActivationFunction();
-        Layer layer2 = new Layer(100, 3);
+        Layer layer2 = new Layer(10, 3);
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
         LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
         Loss loss = new Loss();
