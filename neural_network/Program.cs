@@ -390,6 +390,18 @@ class program
 double[,] StartData = split.TrainInputs;
 int[] labels = split.TrainLabels;
 
+Console.WriteLine(
+    $"Training: {split.TrainInputs.GetLength(0)} x " +
+    $"{split.TrainInputs.GetLength(1)}"
+);
+
+Console.WriteLine(
+    $"Test: {split.TestInputs.GetLength(0)} x " +
+    $"{split.TestInputs.GetLength(1)}"
+);
+
+return;
+
 
 
 
