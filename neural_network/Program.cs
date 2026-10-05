@@ -281,7 +281,30 @@ class program
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
         double lossValue;
         double[,] dInputs;
+        double accuracy;
 
+        double calculateAccuracy(double[,] outputs, int[] labels)
+        {
+            int correctPredictions = 0;
+            for (int i = 0; i < outputs.GetLength(0); i++)
+            {
+                int predictedClass = 0;
+                double maxProbability = outputs[i, 0];
+                for (int j = 1; j < outputs.GetLength(1); j++)
+                {
+                    if (outputs[i, j] > maxProbability)
+                    {
+                        maxProbability = outputs[i, j];
+                        predictedClass = j;
+                    }
+                }
+                if (predictedClass == labels[i])
+                {
+                    correctPredictions++;
+                }
+            }
+            return (double)correctPredictions / outputs.GetLength(0);
+        }
         foreach (int epoch in Enumerable.Range(0, 10001))
         {
             outputs = layer1.forward(StartData); 
@@ -289,6 +312,7 @@ class program
             outputs = layer2.forward(outputs); 
             outputs = activationSoftmax.softmax(outputs);
             lossValue = loss.Calculate(outputs, labels);
+            accuracy = calculateAccuracy(outputs, labels);
             dInputs = activationSoftmax.Backward(outputs, labels);
             dInputs = layer2.backward(dInputs);
             dInputs = activationFunction.Backward(dInputs);
@@ -298,7 +322,7 @@ class program
             
             if (epoch % 1000 == 0)
             {
-                Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}");
+                Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }
         }  
     }
