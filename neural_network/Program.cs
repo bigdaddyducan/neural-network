@@ -241,6 +241,20 @@ public class Layer
         }
         return dInputs;
     }
+    public void UpdateParameters(double learningRate)
+    {
+        for (int i = 0;i < weights.GetLength(0);i++)
+        {
+            for (int j = 0;j < weights.GetLength(1);j++)
+            {
+                weights[i,j] -= learningRate * dWeights[i,j];
+            }
+        }
+        for(int i = 0;i < biases.Length;i++)
+        {
+            biases[i] -= learningRate * dBiases[i];
+        }
+    }
 }
 
 class program
@@ -274,27 +288,10 @@ class program
         dInputs = layer2.backward(dInputs);
         dInputs = activationFunction.Backward(dInputs);
         dInputs = layer1.backward(dInputs);
-        /*
-        for (int i = 0; i < outputs.GetLength(0); i++)
-        {
-            for (int j = 0; j < outputs.GetLength(1); j++)
-            {
-                Console.Write(outputs[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
-        */
-        
-        Console.WriteLine("\n\nLoss Value: " + lossValue);
-
-        for (int i = 0; i < dInputs.GetLength(0); i++)
-        {
-            for (int j = 0; j < dInputs.GetLength(1); j++)
-            {
-                Console.Write(dInputs[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
-        
+        Console.WriteLine(layer1.weights[0,0]);
+        layer1.UpdateParameters(0.2);
+        Console.WriteLine(layer1.dWeights[0,0]);
+        Console.WriteLine(layer1.weights[0,0]);
+        layer2.UpdateParameters(0.2);        
     }
 }
