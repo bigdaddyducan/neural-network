@@ -83,7 +83,6 @@ public class ActivationSoftmax()
             {
                 dInputs[i, j] = Probabilites[i, j];
             }
-            dInputs[i, lables[i]] -= 1;
         }
 
         for(int i = 0;i< samples;i++)
