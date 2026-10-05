@@ -7,13 +7,114 @@ public sealed record KanjiImageDataset(
 
 public static class kanjiDataset
 {
-    private sealed record KanjiClass(int Label,string Kanji,string FolderName);
-    private static readonly KanjiClass[] Classes = [
-        new KanjiClass(0, "雨", "0x96e8"),
-        new KanjiClass(1, "山", "0x5c71"),
-        new KanjiClass(2, "川", "0x5ddd"),
-        new KanjiClass(3, "大", "0x5927")
-    ];
+private sealed record KanjiClass(
+    int Label,
+    string Kanji
+)
+{
+    public string FolderName =>
+        $"0x{char.ConvertToUtf32(Kanji, 0):x4}";
+}
+
+private static readonly KanjiClass[] Classes =
+[
+    // Numbers and currency
+    new KanjiClass(0, "一"),
+    new KanjiClass(1, "二"),
+    new KanjiClass(2, "三"),
+    new KanjiClass(3, "四"),
+    new KanjiClass(4, "五"),
+    new KanjiClass(5, "六"),
+    new KanjiClass(6, "七"),
+    new KanjiClass(7, "八"),
+    new KanjiClass(8, "九"),
+    new KanjiClass(9, "十"),
+    new KanjiClass(10, "百"),
+    new KanjiClass(11, "千"),
+    new KanjiClass(12, "万"),
+    new KanjiClass(13, "円"),
+
+    // Time and calendar
+    new KanjiClass(14, "日"),
+    new KanjiClass(15, "月"),
+    new KanjiClass(16, "火"),
+    new KanjiClass(17, "水"),
+    new KanjiClass(18, "木"),
+    new KanjiClass(19, "金"),
+    new KanjiClass(20, "土"),
+    new KanjiClass(21, "年"),
+    new KanjiClass(22, "時"),
+    new KanjiClass(23, "分"),
+    new KanjiClass(24, "半"),
+
+    // Position and direction
+    new KanjiClass(25, "上"),
+    new KanjiClass(26, "下"),
+    new KanjiClass(27, "中"),
+    new KanjiClass(28, "外"),
+    new KanjiClass(29, "左"),
+    new KanjiClass(30, "右"),
+    new KanjiClass(31, "前"),
+    new KanjiClass(32, "後"),
+    new KanjiClass(33, "東"),
+    new KanjiClass(34, "西"),
+    new KanjiClass(35, "南"),
+    new KanjiClass(36, "北"),
+
+    // People
+    new KanjiClass(37, "人"),
+    new KanjiClass(38, "子"),
+    new KanjiClass(39, "女"),
+    new KanjiClass(40, "男"),
+    new KanjiClass(41, "父"),
+    new KanjiClass(42, "母"),
+    new KanjiClass(43, "友"),
+    new KanjiClass(44, "私"),
+
+    // Education and language
+    new KanjiClass(45, "学"),
+    new KanjiClass(46, "校"),
+    new KanjiClass(47, "生"),
+    new KanjiClass(48, "先"),
+    new KanjiClass(49, "何"),
+    new KanjiClass(50, "本"),
+    new KanjiClass(51, "名"),
+    new KanjiClass(52, "語"),
+    new KanjiClass(53, "文"),
+    new KanjiClass(54, "字"),
+
+    // Common actions
+    new KanjiClass(55, "食"),
+    new KanjiClass(56, "飲"),
+    new KanjiClass(57, "見"),
+    new KanjiClass(58, "聞"),
+    new KanjiClass(59, "読"),
+    new KanjiClass(60, "書"),
+    new KanjiClass(61, "話"),
+    new KanjiClass(62, "買"),
+    new KanjiClass(63, "行"),
+    new KanjiClass(64, "来"),
+    new KanjiClass(65, "帰"),
+    new KanjiClass(66, "入"),
+    new KanjiClass(67, "出"),
+
+    // Descriptions
+    new KanjiClass(68, "大"),
+    new KanjiClass(69, "小"),
+    new KanjiClass(70, "高"),
+    new KanjiClass(71, "安"),
+    new KanjiClass(72, "新"),
+    new KanjiClass(73, "古"),
+    new KanjiClass(74, "多"),
+    new KanjiClass(75, "少"),
+    new KanjiClass(76, "長"),
+
+    // Transport
+    new KanjiClass(77, "電"),
+    new KanjiClass(78, "車"),
+    new KanjiClass(79, "駅")
+];
+
     public static void PrintSummaryFromEnvironment()
     {
         string? root = Environment.GetEnvironmentVariable("KANJI_DATA_ROOT");

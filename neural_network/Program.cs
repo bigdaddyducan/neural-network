@@ -271,7 +271,8 @@ public static class KanjiSplit
         int seed
     )
     {
-        const int classCount = 4;
+        int classCount = allData.Labels.Max() + 1;
+
 
         Random random = new Random(seed);
 
@@ -379,6 +380,17 @@ class program
 {
     static void Main(string[] args)
     {
+if (args.Length == 1 &&
+    args[0].Equals(
+        "scan-kanji",
+        StringComparison.OrdinalIgnoreCase
+    ))
+{
+    kanjiDataset.PrintSummaryFromEnvironment();
+    return;
+}
+
+
         if (args.Length == 1 &&
     args[0].Equals(
         "load-model",
@@ -470,6 +482,19 @@ return;
 
 double[,] StartData = split.TrainInputs;
 int[] labels = split.TrainLabels;
+
+Console.WriteLine(
+    $"Training: {split.TrainInputs.GetLength(0)} x " +
+    $"{split.TrainInputs.GetLength(1)}"
+);
+
+Console.WriteLine(
+    $"Test: {split.TestInputs.GetLength(0)} x " +
+    $"{split.TestInputs.GetLength(1)}"
+);
+
+return;
+
         
         Layer layer1 = new Layer(StartData.GetLength(1), 30);
         Layer layer2 = new Layer(30, 4);
