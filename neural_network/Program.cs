@@ -279,19 +279,21 @@ class program
         LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
         Loss loss = new Loss();
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
+        double lossValue = loss.Calculate(outputs, labels);
+        double[,] dInputs = activationSoftmax.Backward(outputs, labels);
+        /*
         outputs = layer1.forward(StartData); 
         outputs = activationFunction.Forward(outputs);
         outputs = layer2.forward(outputs); 
         outputs = activationSoftmax.softmax(outputs);
-        double lossValue = loss.Calculate(outputs, labels);
-        double[,] dInputs = activationSoftmax.Backward(outputs, labels);
         dInputs = layer2.backward(dInputs);
         dInputs = activationFunction.Backward(dInputs);
         dInputs = layer1.backward(dInputs);
         layer1.UpdateParameters(0.2);
         layer2.UpdateParameters(0.2);      
+        */
 
-        foreach (int epoch in Enumerable.Range(0, 10000))
+        foreach (int epoch in Enumerable.Range(0, 10001))
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
