@@ -189,6 +189,7 @@ class program
             int[] labels = dataset.Labels;
 
 
+        
         Layer layer1 = new Layer(2, 3);
         ActivationFunction activationFunction = new ActivationFunction();
         Layer layer2 = new Layer(3, 3);
@@ -196,8 +197,11 @@ class program
         LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
         Loss loss = new Loss();
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
+        double [,] Layer1Saved = StartData;
         outputs = layer1.forward(StartData); 
+        double [,] PreReLUSaved = layer1.outputs;
         outputs = activationFunction.Forward(outputs);
+        double [,] Layer2Saved = outputs;
         outputs = layer2.forward(outputs); 
         outputs = activationSoftmax.softmax(outputs);
         double lossValue = loss.Calculate(outputs, labels);
