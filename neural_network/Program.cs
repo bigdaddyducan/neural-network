@@ -261,26 +261,18 @@ class program
 {
     static void Main(string[] args)
     {
-        if (args.Length == 1 && args[0].Equals("scan-kanji", StringComparison.OrdinalIgnoreCase))
-        {
-            kanjiDataset.PrintSummaryFromEnvironment();
-            return;
-        }
+        KanjiImageDataset dataset =
+        kanjiDataset.LoadAllFromEnvironment();
+        double[,] StartData = dataset.Inputs;
+        int[] labels = dataset.Labels;
 
-        
-         SpiralDataset dataset = SpiralData.Generate(
-            pointsPerClass: 100,
-            classes: 3,
-            random: new Random(0));
-            
-            double[,] StartData = dataset.Inputs;
-            int[] labels = dataset.Labels;
 
 
         
-        Layer layer1 = new Layer(2, 10);
+        Layer layer1 = new Layer(StartData.GetLength(1), 100);
+        Layer layer2 = new Layer(100, 4);
+
         ActivationFunction activationFunction = new ActivationFunction();
-        Layer layer2 = new Layer(10, 3);
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
         LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
         Loss loss = new Loss();
@@ -311,7 +303,7 @@ class program
             }
             return (double)correctPredictions / outputs.GetLength(0);
         }
-        foreach (int epoch in Enumerable.Range(0, 10001))
+        foreach (int epoch in Enumerable.Range(0, 11))
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
@@ -326,7 +318,7 @@ class program
             layer1.UpdateParameters(0.2);
             layer2.UpdateParameters(0.2);      
             
-            if (epoch % 1000 == 0)
+            if (epoch % 1 == 0)
             {
                 Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }

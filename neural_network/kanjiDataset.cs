@@ -1,5 +1,10 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
+public sealed record KanjiImageDataset(
+    double[,] Inputs,
+    int[] Labels
+);
+
 public static class kanjiDataset
 {
     private sealed record KanjiClass(int Label,string Kanji,string FolderName);
@@ -23,6 +28,72 @@ public static class kanjiDataset
 
         PrintSummary(root);
     }
+    public static KanjiImageDataset LoadAllFromEnvironment()
+{
+    string? root = Environment.GetEnvironmentVariable("KANJI_DATA_ROOT");
+
+    if (string.IsNullOrWhiteSpace(root))
+    {
+        throw new InvalidOperationException(
+            "KANJI_DATA_ROOT is not set. " +
+            "Set it to your ETL9G images folder before running."
+        );
+    }
+
+    if (!Directory.Exists(root))
+    {
+        throw new DirectoryNotFoundException(
+            $"Kanji data folder was not found: {root}"
+        );
+    }
+
+    List<double[]> featureRows = new List<double[]>();
+    List<int> labels = new List<int>();
+
+    foreach (KanjiClass kanjiClass in Classes)
+    {
+        string classFolder = Path.Combine(root, kanjiClass.FolderName);
+
+        if (!Directory.Exists(classFolder))
+        {
+            throw new DirectoryNotFoundException(
+                $"Missing folder for {kanjiClass.Kanji}: {classFolder}"
+            );
+        }
+
+        string[] pngFiles = Directory
+            .GetFiles(classFolder, "*.png", SearchOption.TopDirectoryOnly)
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .ToArray();
+
+        foreach (string imagePath in pngFiles)
+        {
+            double[] features = LoadImageAsFeatures(imagePath);
+
+            if (features.Length != 4096)
+            {
+                throw new InvalidOperationException(
+                    $"Expected 4096 features, got {features.Length}: {imagePath}"
+                );
+            }
+
+            featureRows.Add(features);
+            labels.Add(kanjiClass.Label);
+        }
+    }
+
+    double[,] inputs = new double[featureRows.Count, 4096];
+
+    for (int sample = 0; sample < featureRows.Count; sample++)
+    {
+        for (int feature = 0; feature < 4096; feature++)
+        {
+            inputs[sample, feature] = featureRows[sample][feature];
+        }
+    }
+
+    return new KanjiImageDataset(inputs, labels.ToArray());
+}
 
     public static void PrintSummary(string root)
     {
