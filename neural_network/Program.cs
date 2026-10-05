@@ -395,7 +395,6 @@ int[] labels = split.TrainLabels;
 
         ActivationFunction activationFunction = new ActivationFunction();
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
-        LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
         Loss loss = new Loss();
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
         double lossValue;
@@ -453,5 +452,21 @@ int[] labels = split.TrainLabels;
         Console.WriteLine();
         Console.WriteLine($"Test loss: {testLoss}");
         Console.WriteLine($"Test accuracy: {testAccuracy}");
+
+        string modelPath = Path.Combine(
+    "models",
+    "kanji-4class-v1.json"
+);
+
+ModelPersistence.Save(
+    modelPath,
+    layer1,
+    layer2
+);
+
+Console.WriteLine(
+    $"Saved model: {Path.GetFullPath(modelPath)}"
+);
+
     }
 }
