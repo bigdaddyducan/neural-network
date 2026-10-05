@@ -261,6 +261,12 @@ class program
 {
     static void Main(string[] args)
     {
+        if (args.Length == 1 && args[0].Equals("scan-kanji", StringComparison.OrdinalIgnoreCase))
+        {
+            kanjiDataset.PrintSummaryFromEnvironment();
+            return;
+        }
+
         
          SpiralDataset dataset = SpiralData.Generate(
             pointsPerClass: 100,
