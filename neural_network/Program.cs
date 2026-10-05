@@ -1,27 +1,10 @@
-﻿//creating a neuron
-public class Neuron
-{
-    double[] X;
-    double[] weights;
-    double bias;
-    double output;
-
-    double calculateOutput()
-    {
-        double sum = 0;
-        for (int i = 0; i < X.Length; i++)
-        {
-            sum += X[i] * weights[i];
-        }
-        sum += bias;
-        return sum;
-    }
-
-}
+﻿
 public class ActivationFunction()
 {
+    public double[,] ReLUCache;
     public double[,] Forward(double[,] x)
     {
+        ReLUCache = x;
         //ReLU activation function
         for (int i = 0; i < x.GetLength(0); i++)
         {
@@ -74,27 +57,7 @@ public class ActivationSoftmax()
                 norm_values[i, j] = exp_values[i, j] / sum_values[i, 0];
             }
         }
-        /*
-        Console.WriteLine("Sum Values:\n\n\n");
-        for (int i = 0; i < sum_values.GetLength(0); i++)
-        {
-            for (int j = 0; j < sum_values.GetLength(1); j++)
-            {
-                Console.Write(sum_values[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
         
-        Console.WriteLine("After Softmax:\n\n\n");
-        for (int i = 0; i < norm_values.GetLength(0); i++)
-        {
-            for (int j = 0; j < norm_values.GetLength(1); j++)
-            {
-                Console.Write(norm_values[i, j] + " ");
-            }
-            Console.WriteLine();
-        }
-        */
         return norm_values;
     }
 }
@@ -136,6 +99,7 @@ public class LossCategoricalCrossentropy : Loss
 public class Layer
 {
     public double [,] outputs;
+    public double[,] LayerCache;
     Random rand = new Random();
     public double[,] weights;
     public double[] biases;
@@ -171,6 +135,7 @@ public class Layer
                 outputs[i, j] = sum;
             }
         }
+        this.LayerCache = inputs;
         return outputs;
     }
 }
@@ -197,11 +162,8 @@ class program
         LossCategoricalCrossentropy Loss_Function = new LossCategoricalCrossentropy();
         Loss loss = new Loss();
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
-        double [,] Layer1Saved = StartData;
         outputs = layer1.forward(StartData); 
-        double [,] PreReLUSaved = layer1.outputs;
         outputs = activationFunction.Forward(outputs);
-        double [,] Layer2Saved = outputs;
         outputs = layer2.forward(outputs); 
         outputs = activationSoftmax.softmax(outputs);
         double lossValue = loss.Calculate(outputs, labels);
