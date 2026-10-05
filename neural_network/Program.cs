@@ -71,6 +71,36 @@ public class ActivationSoftmax()
         
         return norm_values;
     }
+    public double[,] Backward(double[,] Probabilites, int[] lables)
+    {
+        int samples = Probabilites.GetLength(0);
+        int classes = Probabilites.GetLength(1);
+        double[,] dInputs = new double[samples, classes];
+        int correctClass = 0;
+        for (int i = 0; i < samples; i++)
+        {
+            for (int j = 0; j < classes; j++)
+            {
+                dInputs[i, j] = Probabilites[i, j];
+            }
+            dInputs[i, lables[i]] -= 1;
+        }
+
+        for(int i = 0;i< samples;i++)
+        {
+            correctClass = lables[i];
+            dInputs[i,correctClass] -= 1;
+        }
+
+        for (int i = 0; i < samples; i++)
+        {
+            for (int j = 0; j < classes; j++)
+            {
+                dInputs[i, j] /= samples;
+            }
+        }
+        return dInputs;
+    }
 }
 
 public class Loss()
@@ -177,6 +207,8 @@ class program
         outputs = layer2.forward(outputs); 
         outputs = activationSoftmax.softmax(outputs);
         double lossValue = loss.Calculate(outputs, labels);
+        double[,] dInputs = activationSoftmax.Backward(outputs, labels);
+        /*
         for (int i = 0; i < outputs.GetLength(0); i++)
         {
             for (int j = 0; j < outputs.GetLength(1); j++)
@@ -185,8 +217,18 @@ class program
             }
             Console.WriteLine();
         }
-
+        */
+        
         Console.WriteLine("\n\nLoss Value: " + lossValue);
+
+        for (int i = 0; i < dInputs.GetLength(0); i++)
+        {
+            for (int j = 0; j < dInputs.GetLength(1); j++)
+            {
+                Console.Write(dInputs[i, j] + " ");
+            }
+            Console.WriteLine();
+        }
         
     }
 }
