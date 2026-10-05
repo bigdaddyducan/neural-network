@@ -215,7 +215,7 @@ public class Layer
                 total = 0;
                 for (int k = 0; k < dValues.GetLength(1); k++)
                 {
-                    total += dValues[k, j] * weights[i, k];
+                    total += dValues[i, k] * weights[j, k];
                 }
                 dInputs[i, j] = total;
             }
