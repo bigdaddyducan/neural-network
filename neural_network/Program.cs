@@ -288,10 +288,27 @@ class program
         dInputs = layer2.backward(dInputs);
         dInputs = activationFunction.Backward(dInputs);
         dInputs = layer1.backward(dInputs);
-        Console.WriteLine(layer1.weights[0,0]);
         layer1.UpdateParameters(0.2);
-        Console.WriteLine(layer1.dWeights[0,0]);
-        Console.WriteLine(layer1.weights[0,0]);
-        layer2.UpdateParameters(0.2);        
+        layer2.UpdateParameters(0.2);      
+
+        foreach (int epoch in Enumerable.Range(0, 10000))
+        {
+            outputs = layer1.forward(StartData); 
+            outputs = activationFunction.Forward(outputs);
+            outputs = layer2.forward(outputs); 
+            outputs = activationSoftmax.softmax(outputs);
+            lossValue = loss.Calculate(outputs, labels);
+            dInputs = activationSoftmax.Backward(outputs, labels);
+            dInputs = layer2.backward(dInputs);
+            dInputs = activationFunction.Backward(dInputs);
+            dInputs = layer1.backward(dInputs);
+            layer1.UpdateParameters(0.2);
+            layer2.UpdateParameters(0.2);      
+            
+            if (epoch % 1000 == 0)
+            {
+                Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}");
+            }
+        }  
     }
 }
