@@ -412,6 +412,24 @@ if (args.Length == 1 &&
         $"Classes: {string.Join(", ", loadedModel.Metadata.ClassKanji)}"
     );
 
+string[] activeKanji =
+    kanjiDataset.GetClassKanji();
+
+string[] activeFolders =
+    kanjiDataset.GetClassFolders();
+
+if (loadedModel.Metadata.OutputClassCount !=
+    kanjiDataset.ClassCount ||
+    !loadedModel.Metadata.ClassKanji.SequenceEqual(activeKanji) ||
+    !loadedModel.Metadata.ClassFolders.SequenceEqual(activeFolders))
+{
+    throw new InvalidOperationException(
+        "The saved model class mapping does not match " +
+        "the active dataset manifest."
+    );
+}
+
+
     KanjiImageDataset loadedDataset =
     kanjiDataset.LoadAllFromEnvironment();
 
@@ -482,6 +500,8 @@ return;
 
 double[,] StartData = split.TrainInputs;
 int[] labels = split.TrainLabels;
+int outputClassCount = labels.Max() + 1;
+
 
 Console.WriteLine(
     $"Training: {split.TrainInputs.GetLength(0)} x " +
@@ -497,7 +517,9 @@ return;
 
         
         Layer layer1 = new Layer(StartData.GetLength(1), 30);
-        Layer layer2 = new Layer(30, 4);
+        Layer layer2 = new Layer(30, outputClassCount);
+   
+
 
         ActivationFunction activationFunction = new ActivationFunction();
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
@@ -561,14 +583,17 @@ return;
 
         string modelPath = Path.Combine(
     "models",
-    "kanji-4class-v1.json"
+    "kanji-n5-v1.json"
 );
 
 ModelPersistence.Save(
     modelPath,
     layer1,
-    layer2
+    layer2,
+    kanjiDataset.GetClassKanji(),
+    kanjiDataset.GetClassFolders()
 );
+
 
 Console.WriteLine(
     $"Saved model: {Path.GetFullPath(modelPath)}"

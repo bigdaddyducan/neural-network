@@ -41,11 +41,14 @@ public static class ModelPersistence
             WriteIndented = true
         };
 
-    public static void Save(
-        string modelPath,
-        Layer layer1,
-        Layer layer2
-    )
+public static void Save(
+    string modelPath,
+    Layer layer1,
+    Layer layer2,
+    string[] classKanji,
+    string[] classFolders
+)
+
     {
         if (File.Exists(modelPath))
         {
@@ -60,6 +63,16 @@ public static class ModelPersistence
                 "The two layer dimensions do not connect correctly."
             );
         }
+
+        if (classKanji.Length != layer2.weights.GetLength(1) ||
+    classFolders.Length != layer2.weights.GetLength(1))
+{
+    throw new InvalidOperationException(
+        "The saved class mapping does not match " +
+        "the output layer width."
+    );
+}
+
 
         ModelCheckpoint checkpoint = new ModelCheckpoint
         {
@@ -79,15 +92,9 @@ public static class ModelPersistence
 
             FlatteningOrder =
                 "row-major: featureIndex = y * 64 + x",
+                ClassKanji = (string[])classKanji.Clone(),
+                ClassFolders = (string[])classFolders.Clone(),
 
-            ClassKanji = new[] { "雨", "山", "川", "大" },
-            ClassFolders = new[]
-            {
-                "0x96e8",
-                "0x5c71",
-                "0x5ddd",
-                "0x5927"
-            },
 
             Layer1Weights = ToMatrixData(layer1.weights),
             Layer1Biases = (double[])layer1.biases.Clone(),
