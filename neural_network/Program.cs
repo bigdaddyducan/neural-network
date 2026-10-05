@@ -513,8 +513,6 @@ Console.WriteLine(
     $"{split.TestInputs.GetLength(1)}"
 );
 
-return;
-
         
         Layer layer1 = new Layer(StartData.GetLength(1), 30);
         Layer layer2 = new Layer(30, outputClassCount);
@@ -551,7 +549,8 @@ return;
             }
             return (double)correctPredictions / outputs.GetLength(0);
         }
-        foreach (int epoch in Enumerable.Range(0, 201))
+
+        foreach (int epoch in Enumerable.Range(0, 200))
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
@@ -570,7 +569,9 @@ return;
             {
                 Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }
-        }  
+        }
+return;
+ 
         double[,] testOutputs = layer1.forward(split.TestInputs);
         testOutputs = activationFunction.Forward(testOutputs);
         testOutputs = layer2.forward(testOutputs);

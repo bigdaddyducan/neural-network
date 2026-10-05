@@ -115,6 +115,24 @@ private static readonly KanjiClass[] Classes =
     new KanjiClass(79, "駅")
 ];
 
+public static int ClassCount => Classes.Length;
+
+public static string[] GetClassKanji()
+{
+    return Classes
+        .OrderBy(kanjiClass => kanjiClass.Label)
+        .Select(kanjiClass => kanjiClass.Kanji)
+        .ToArray();
+}
+
+public static string[] GetClassFolders()
+{
+    return Classes
+        .OrderBy(kanjiClass => kanjiClass.Label)
+        .Select(kanjiClass => kanjiClass.FolderName)
+        .ToArray();
+}
+
     public static void PrintSummaryFromEnvironment()
     {
         string? root = Environment.GetEnvironmentVariable("KANJI_DATA_ROOT");
