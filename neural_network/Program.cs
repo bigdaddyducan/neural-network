@@ -166,12 +166,15 @@ public class Layer
     public double[,] dInputs;
     public Layer(int n_inputs, int n_neurons)
     {
+        double limit = Math.Sqrt(6.0 / (n_inputs + n_neurons));
+
         this.weights = new double[n_inputs,n_neurons];
         for (int i = 0; i < n_inputs; i++)
         {
             for (int j = 0; j < n_neurons; j++)
             {
-                weights[i, j] = rand.NextDouble() * 2 - 1;
+                weights[i, j] = (rand.NextDouble() * 2 - 1) * limit;
+
             }
         }
         this.biases = new double[n_neurons];
@@ -550,7 +553,7 @@ Console.WriteLine(
             return (double)correctPredictions / outputs.GetLength(0);
         }
 
-        foreach (int epoch in Enumerable.Range(0, 200))
+        foreach (int epoch in Enumerable.Range(0, 11))
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
@@ -565,7 +568,7 @@ Console.WriteLine(
             layer1.UpdateParameters(0.2);
             layer2.UpdateParameters(0.2);      
             
-            if (epoch % 10 == 0)
+            if (epoch % 1 == 0)
             {
                 Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }
