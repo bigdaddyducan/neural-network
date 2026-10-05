@@ -444,5 +444,14 @@ int[] labels = split.TrainLabels;
                 Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
             }
         }  
+        double[,] testOutputs = layer1.forward(split.TestInputs);
+        testOutputs = activationFunction.Forward(testOutputs);
+        testOutputs = layer2.forward(testOutputs);
+        testOutputs = activationSoftmax.softmax(testOutputs);
+        double testLoss = loss.Calculate(testOutputs,split.TestLabels);
+        double testAccuracy = calculateAccuracy(testOutputs,split.TestLabels);
+        Console.WriteLine();
+        Console.WriteLine($"Test loss: {testLoss}");
+        Console.WriteLine($"Test accuracy: {testAccuracy}");
     }
 }
