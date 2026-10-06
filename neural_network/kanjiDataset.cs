@@ -7,19 +7,19 @@ public sealed record KanjiImageDataset(
 
 public static class kanjiDataset
 {
-private sealed record KanjiClass(
-    int Label,
-    string Kanji
-)
-{
-    public string FolderName =>
-        $"0x{char.ConvertToUtf32(Kanji, 0):x4}";
-}
+    private sealed record KanjiClass(
+        int Label,
+        string Kanji
+    )
+    {
+        public string FolderName =>
+            $"0x{char.ConvertToUtf32(Kanji, 0):x4}";
+    }
 
-private static readonly KanjiClass[] Classes =
-[
-    // Numbers and currency
-    new KanjiClass(0, "一"),
+    private static readonly KanjiClass[] Classes =
+    [
+        // Numbers and currency
+        new KanjiClass(0, "一"),
     new KanjiClass(1, "二"),
     new KanjiClass(2, "三"),
     new KanjiClass(3, "四"),
@@ -113,25 +113,25 @@ private static readonly KanjiClass[] Classes =
     new KanjiClass(77, "電"),
     new KanjiClass(78, "車"),
     new KanjiClass(79, "駅")
-];
+    ];
 
-public static int ClassCount => Classes.Length;
+    public static int ClassCount => Classes.Length;
 
-public static string[] GetClassKanji()
-{
-    return Classes
-        .OrderBy(kanjiClass => kanjiClass.Label)
-        .Select(kanjiClass => kanjiClass.Kanji)
-        .ToArray();
-}
+    public static string[] GetClassKanji()
+    {
+        return Classes
+            .OrderBy(kanjiClass => kanjiClass.Label)
+            .Select(kanjiClass => kanjiClass.Kanji)
+            .ToArray();
+    }
 
-public static string[] GetClassFolders()
-{
-    return Classes
-        .OrderBy(kanjiClass => kanjiClass.Label)
-        .Select(kanjiClass => kanjiClass.FolderName)
-        .ToArray();
-}
+    public static string[] GetClassFolders()
+    {
+        return Classes
+            .OrderBy(kanjiClass => kanjiClass.Label)
+            .Select(kanjiClass => kanjiClass.FolderName)
+            .ToArray();
+    }
 
     public static void PrintSummaryFromEnvironment()
     {
@@ -148,71 +148,71 @@ public static string[] GetClassFolders()
         PrintSummary(root);
     }
     public static KanjiImageDataset LoadAllFromEnvironment()
-{
-    string? root = Environment.GetEnvironmentVariable("KANJI_DATA_ROOT");
-
-    if (string.IsNullOrWhiteSpace(root))
     {
-        throw new InvalidOperationException(
-            "KANJI_DATA_ROOT is not set. " +
-            "Set it to your ETL9G images folder before running."
-        );
-    }
+        string? root = Environment.GetEnvironmentVariable("KANJI_DATA_ROOT");
 
-    if (!Directory.Exists(root))
-    {
-        throw new DirectoryNotFoundException(
-            $"Kanji data folder was not found: {root}"
-        );
-    }
-
-    List<double[]> featureRows = new List<double[]>();
-    List<int> labels = new List<int>();
-
-    foreach (KanjiClass kanjiClass in Classes)
-    {
-        string classFolder = Path.Combine(root, kanjiClass.FolderName);
-
-        if (!Directory.Exists(classFolder))
+        if (string.IsNullOrWhiteSpace(root))
         {
-            throw new DirectoryNotFoundException(
-                $"Missing folder for {kanjiClass.Kanji}: {classFolder}"
+            throw new InvalidOperationException(
+                "KANJI_DATA_ROOT is not set. " +
+                "Set it to your ETL9G images folder before running."
             );
         }
 
-        string[] pngFiles = Directory
-            .GetFiles(classFolder, "*.png", SearchOption.TopDirectoryOnly)
-            .OrderBy(path => path, StringComparer.Ordinal)
-            .ToArray();
-
-        foreach (string imagePath in pngFiles)
+        if (!Directory.Exists(root))
         {
-            double[] features = LoadImageAsFeatures(imagePath);
+            throw new DirectoryNotFoundException(
+                $"Kanji data folder was not found: {root}"
+            );
+        }
 
-            if (features.Length != 1024)
+        List<double[]> featureRows = new List<double[]>();
+        List<int> labels = new List<int>();
+
+        foreach (KanjiClass kanjiClass in Classes)
+        {
+            string classFolder = Path.Combine(root, kanjiClass.FolderName);
+
+            if (!Directory.Exists(classFolder))
             {
-                throw new InvalidOperationException(
-                    $"Expected 1024 features, got {features.Length}: {imagePath}"
+                throw new DirectoryNotFoundException(
+                    $"Missing folder for {kanjiClass.Kanji}: {classFolder}"
                 );
             }
 
-            featureRows.Add(features);
-            labels.Add(kanjiClass.Label);
+            string[] pngFiles = Directory
+                .GetFiles(classFolder, "*.png", SearchOption.TopDirectoryOnly)
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .ToArray();
+
+            foreach (string imagePath in pngFiles)
+            {
+                double[] features = LoadImageAsFeatures(imagePath);
+
+                if (features.Length != 1024)
+                {
+                    throw new InvalidOperationException(
+                        $"Expected 1024 features, got {features.Length}: {imagePath}"
+                    );
+                }
+
+                featureRows.Add(features);
+                labels.Add(kanjiClass.Label);
+            }
         }
-    }
 
-    double[,] inputs = new double[featureRows.Count, 1024];
+        double[,] inputs = new double[featureRows.Count, 1024];
 
-    for (int sample = 0; sample < featureRows.Count; sample++)
-    {
-        for (int feature = 0; feature < 1024; feature++)
+        for (int sample = 0; sample < featureRows.Count; sample++)
         {
-            inputs[sample, feature] = featureRows[sample][feature];
+            for (int feature = 0; feature < 1024; feature++)
+            {
+                inputs[sample, feature] = featureRows[sample][feature];
+            }
         }
-    }
 
-    return new KanjiImageDataset(inputs, labels.ToArray());
-}
+        return new KanjiImageDataset(inputs, labels.ToArray());
+    }
 
     public static void PrintSummary(string root)
     {
@@ -257,80 +257,80 @@ public static string[] GetClassFolders()
     }
     private static void PrintFirstImageDetails(string root)
     {
-    KanjiClass firstClass = Classes[0];
+        KanjiClass firstClass = Classes[0];
 
-    string classFolder = Path.Combine(root, firstClass.FolderName);
+        string classFolder = Path.Combine(root, firstClass.FolderName);
 
-    string firstImage = Directory
-        .GetFiles(classFolder, "*.png", SearchOption.TopDirectoryOnly)
-        .OrderBy(path => path, StringComparer.Ordinal)
-        .First();
+        string firstImage = Directory
+            .GetFiles(classFolder, "*.png", SearchOption.TopDirectoryOnly)
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .First();
 
-    using Bitmap image = new Bitmap(firstImage);
+        using Bitmap image = new Bitmap(firstImage);
 
-    Color topLeft = image.GetPixel(0, 0);
+        Color topLeft = image.GetPixel(0, 0);
 
-    double grayscale =
-        (0.299 * topLeft.R +
-         0.587 * topLeft.G +
-         0.114 * topLeft.B) / 255.0;
+        double grayscale =
+            (0.299 * topLeft.R +
+             0.587 * topLeft.G +
+             0.114 * topLeft.B) / 255.0;
 
-    Console.WriteLine();
-    Console.WriteLine($"Example image: {Path.GetFileName(firstImage)}");
-    Console.WriteLine($"Class: {firstClass.Kanji} (label {firstClass.Label})");
-    Console.WriteLine($"Dimensions: {image.Width} x {image.Height}");
-    Console.WriteLine(
-        $"Pixel [0, 0]: RGB({topLeft.R}, {topLeft.G}, {topLeft.B}), " +
-        $"grayscale: {grayscale}"
-    );
+        Console.WriteLine();
+        Console.WriteLine($"Example image: {Path.GetFileName(firstImage)}");
+        Console.WriteLine($"Class: {firstClass.Kanji} (label {firstClass.Label})");
+        Console.WriteLine($"Dimensions: {image.Width} x {image.Height}");
+        Console.WriteLine(
+            $"Pixel [0, 0]: RGB({topLeft.R}, {topLeft.G}, {topLeft.B}), " +
+            $"grayscale: {grayscale}"
+        );
 
-    double[] features = LoadImageAsFeatures(firstImage);
+        double[] features = LoadImageAsFeatures(firstImage);
 
-Console.WriteLine($"Resized dimensions: 32 x 32");
-Console.WriteLine($"Feature count: {features.Length}");
-Console.WriteLine($"Ink range: {features.Min()} to {features.Max()}");
-Console.WriteLine(
-    $"Non-zero ink features: {features.Count(value => value > 0.0)}"
-);
+        Console.WriteLine($"Resized dimensions: 32 x 32");
+        Console.WriteLine($"Feature count: {features.Length}");
+        Console.WriteLine($"Ink range: {features.Min()} to {features.Max()}");
+        Console.WriteLine(
+            $"Non-zero ink features: {features.Count(value => value > 0.0)}"
+        );
 
     }
     private static double[] LoadImageAsFeatures(string imagePath)
     {
-    const int targetWidth = 32;
-    const int targetHeight = 32;
+        const int targetWidth = 32;
+        const int targetHeight = 32;
 
-    using Bitmap original = new Bitmap(imagePath);
-    using Bitmap resized = new Bitmap(targetWidth, targetHeight);
-    using Graphics graphics = Graphics.FromImage(resized);
+        using Bitmap original = new Bitmap(imagePath);
+        using Bitmap resized = new Bitmap(targetWidth, targetHeight);
+        using Graphics graphics = Graphics.FromImage(resized);
 
-    graphics.Clear(Color.White);
-    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-    graphics.DrawImage(
-        original,
-        new Rectangle(0, 0, targetWidth, targetHeight)
-    );
+        graphics.Clear(Color.White);
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.DrawImage(
+            original,
+            new Rectangle(0, 0, targetWidth, targetHeight)
+        );
 
-    double[] features = new double[targetWidth * targetHeight];
+        double[] features = new double[targetWidth * targetHeight];
 
-    for (int y = 0; y < targetHeight; y++)
-    {
-        for (int x = 0; x < targetWidth; x++)
+        for (int y = 0; y < targetHeight; y++)
         {
-            Color pixel = resized.GetPixel(x, y);
+            for (int x = 0; x < targetWidth; x++)
+            {
+                Color pixel = resized.GetPixel(x, y);
 
-            double grayscale =
-                (0.299 * pixel.R +
-                 0.587 * pixel.G +
-                 0.114 * pixel.B) / 255.0;
+                double grayscale =
+                    (0.299 * pixel.R +
+                     0.587 * pixel.G +
+                     0.114 * pixel.B) / 255.0;
 
-            double ink = 1.0 - grayscale;
+                double ink = 1.0 - grayscale;
 
-            int featureIndex = y * targetWidth + x;
-            features[featureIndex] = ink;
+                int featureIndex = y * targetWidth + x;
+                features[featureIndex] = ink;
+            }
         }
-    }
 
-    return features;
+        return features;
     }
 
 

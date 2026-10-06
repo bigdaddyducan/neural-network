@@ -10,7 +10,7 @@ public class ActivationFunction()
         {
             for (int j = 0; j < x.GetLength(1); j++)
             {
-                ReLUCache[i,j] = x[i,j];
+                ReLUCache[i, j] = x[i, j];
             }
         }
     }
@@ -22,7 +22,7 @@ public class ActivationFunction()
         {
             for (int j = 0; j < x.GetLength(1); j++)
             {
-                x[i,j] = x[i,j] > 0 ? x[i,j] : 0;
+                x[i, j] = x[i, j] > 0 ? x[i, j] : 0;
             }
         }
         return x;
@@ -30,17 +30,17 @@ public class ActivationFunction()
     public double[,] Backward(double[,] dValues)
     {
         dInputs = new double[dValues.GetLength(0), dValues.GetLength(1)];
-        for (int i = 0; i < dValues.GetLength(0);i++)
+        for (int i = 0; i < dValues.GetLength(0); i++)
         {
-            for (int j = 0; j < dValues.GetLength(1);j++)
+            for (int j = 0; j < dValues.GetLength(1); j++)
             {
-                if (ReLUCache[i,j] <= 0)
+                if (ReLUCache[i, j] <= 0)
                 {
-                    dInputs[i,j] = 0;
+                    dInputs[i, j] = 0;
                 }
                 else
                 {
-                    dInputs[i,j] = dValues[i,j];
+                    dInputs[i, j] = dValues[i, j];
                 }
             }
         }
@@ -87,7 +87,7 @@ public class ActivationSoftmax()
                 norm_values[i, j] = exp_values[i, j] / sum_values[i, 0];
             }
         }
-        
+
         return norm_values;
     }
     public double[,] Backward(double[,] Probabilites, int[] lables)
@@ -104,10 +104,10 @@ public class ActivationSoftmax()
             }
         }
 
-        for(int i = 0;i< samples;i++)
+        for (int i = 0; i < samples; i++)
         {
             correctClass = lables[i];
-            dInputs[i,correctClass] -= 1;
+            dInputs[i, correctClass] -= 1;
         }
 
         for (int i = 0; i < samples; i++)
@@ -143,7 +143,7 @@ public class LossCategoricalCrossentropy : Loss
         int samples = y_pred.GetLength(0);
         int classes = y_pred.GetLength(1);
         double[] negativeLogLikelihoods = new double[samples];
-    
+
         for (int i = 0; i < samples; i++)
         {
             int correctClass = labels[i];
@@ -168,7 +168,7 @@ public class Layer
     {
         double limit = Math.Sqrt(6.0 / (n_inputs + n_neurons));
 
-        this.weights = new double[n_inputs,n_neurons];
+        this.weights = new double[n_inputs, n_neurons];
         for (int i = 0; i < n_inputs; i++)
         {
             for (int j = 0; j < n_neurons; j++)
@@ -221,16 +221,16 @@ public class Layer
                 dWeights[i, j] = total;
             }
         }
-        for(int i = 0; i < dValues.GetLength(1); i++)
+        for (int i = 0; i < dValues.GetLength(1); i++)
         {
             total = 0;
-            for(int j = 0; j < dValues.GetLength(0); j++)
+            for (int j = 0; j < dValues.GetLength(0); j++)
             {
                 total += dValues[j, i];
             }
             dBiases[i] = total;
-        } 
-        for(int i = 0; i < dValues.GetLength(0); i++)
+        }
+        for (int i = 0; i < dValues.GetLength(0); i++)
         {
             for (int j = 0; j < LayerCache.GetLength(1); j++)
             {
@@ -246,14 +246,14 @@ public class Layer
     }
     public void UpdateParameters(double learningRate)
     {
-        for (int i = 0;i < weights.GetLength(0);i++)
+        for (int i = 0; i < weights.GetLength(0); i++)
         {
-            for (int j = 0;j < weights.GetLength(1);j++)
+            for (int j = 0; j < weights.GetLength(1); j++)
             {
-                weights[i,j] -= learningRate * dWeights[i,j];
+                weights[i, j] -= learningRate * dWeights[i, j];
             }
         }
-        for(int i = 0;i < biases.Length;i++)
+        for (int i = 0; i < biases.Length; i++)
         {
             biases[i] -= learningRate * dBiases[i];
         }
@@ -314,29 +314,29 @@ public static class KanjiSplit
                 if (i < trainPerClass)
                 {
                     trainIndices.Add(classIndices[i]);
-                    }
-else if (i < trainPerClass + validationPerClass)
-{
-    validationIndices.Add(classIndices[i]);
-}
-else
-{
-    testIndices.Add(classIndices[i]);
-}
+                }
+                else if (i < trainPerClass + validationPerClass)
+                {
+                    validationIndices.Add(classIndices[i]);
+                }
+                else
+                {
+                    testIndices.Add(classIndices[i]);
+                }
 
             }
         }
 
-return new KanjiDataSplit(
-    CopyRows(allData.Inputs, allData.Labels, trainIndices),
-    CopyLabels(allData.Labels, trainIndices),
+        return new KanjiDataSplit(
+            CopyRows(allData.Inputs, allData.Labels, trainIndices),
+            CopyLabels(allData.Labels, trainIndices),
 
-    CopyRows(allData.Inputs, allData.Labels, validationIndices),
-    CopyLabels(allData.Labels, validationIndices),
+            CopyRows(allData.Inputs, allData.Labels, validationIndices),
+            CopyLabels(allData.Labels, validationIndices),
 
-    CopyRows(allData.Inputs, allData.Labels, testIndices),
-    CopyLabels(allData.Labels, testIndices)
-);
+            CopyRows(allData.Inputs, allData.Labels, testIndices),
+            CopyLabels(allData.Labels, testIndices)
+        );
 
     }
 
@@ -448,19 +448,131 @@ public static class BatchBuilder
     }
 }
 
+public sealed class AdamOptimizer
+{
+    private readonly double learningRate;
+    private readonly double beta1;
+    private readonly double beta2;
+    private readonly double epsilon;
+
+    private readonly double[,] weightFirstMoment;
+    private readonly double[,] weightSecondMoment;
+
+    private readonly double[] biasFirstMoment;
+    private readonly double[] biasSecondMoment;
+
+    public AdamOptimizer(
+        Layer layer,
+        double learningRate = 0.001,
+        double beta1 = 0.9,
+        double beta2 = 0.999,
+        double epsilon = 1e-8
+    )
+    {
+        this.learningRate = learningRate;
+        this.beta1 = beta1;
+        this.beta2 = beta2;
+        this.epsilon = epsilon;
+
+        weightFirstMoment = new double[
+            layer.weights.GetLength(0),
+            layer.weights.GetLength(1)
+        ];
+
+        weightSecondMoment = new double[
+            layer.weights.GetLength(0),
+            layer.weights.GetLength(1)
+        ];
+
+        biasFirstMoment = new double[layer.biases.Length];
+        biasSecondMoment = new double[layer.biases.Length];
+    }
+
+    public void Update(Layer layer, int step)
+    {
+        double firstBiasCorrection =
+            1.0 - Math.Pow(beta1, step);
+
+        double secondBiasCorrection =
+            1.0 - Math.Pow(beta2, step);
+
+        for (int input = 0;
+             input < layer.weights.GetLength(0);
+             input++)
+        {
+            for (int neuron = 0;
+                 neuron < layer.weights.GetLength(1);
+                 neuron++)
+            {
+                double gradient = layer.dWeights[input, neuron];
+
+                weightFirstMoment[input, neuron] =
+                    beta1 * weightFirstMoment[input, neuron] +
+                    (1.0 - beta1) * gradient;
+
+                weightSecondMoment[input, neuron] =
+                    beta2 * weightSecondMoment[input, neuron] +
+                    (1.0 - beta2) * gradient * gradient;
+
+                double correctedFirstMoment =
+                    weightFirstMoment[input, neuron] /
+                    firstBiasCorrection;
+
+                double correctedSecondMoment =
+                    weightSecondMoment[input, neuron] /
+                    secondBiasCorrection;
+
+                layer.weights[input, neuron] -=
+                    learningRate *
+                    correctedFirstMoment /
+                    (Math.Sqrt(correctedSecondMoment) + epsilon);
+            }
+        }
+
+        for (int neuron = 0;
+             neuron < layer.biases.Length;
+             neuron++)
+        {
+            double gradient = layer.dBiases[neuron];
+
+            biasFirstMoment[neuron] =
+                beta1 * biasFirstMoment[neuron] +
+                (1.0 - beta1) * gradient;
+
+            biasSecondMoment[neuron] =
+                beta2 * biasSecondMoment[neuron] +
+                (1.0 - beta2) * gradient * gradient;
+
+            double correctedFirstMoment =
+                biasFirstMoment[neuron] /
+                firstBiasCorrection;
+
+            double correctedSecondMoment =
+                biasSecondMoment[neuron] /
+                secondBiasCorrection;
+
+            layer.biases[neuron] -=
+                learningRate *
+                correctedFirstMoment /
+                (Math.Sqrt(correctedSecondMoment) + epsilon);
+        }
+    }
+}
+
+
 class program
 {
     static void Main(string[] args)
     {
-if (args.Length == 1 &&
-    args[0].Equals(
-        "scan-kanji",
-        StringComparison.OrdinalIgnoreCase
-    ))
-{
-    kanjiDataset.PrintSummaryFromEnvironment();
-    return;
-}
+        if (args.Length == 1 &&
+            args[0].Equals(
+                "scan-kanji",
+                StringComparison.OrdinalIgnoreCase
+            ))
+        {
+            kanjiDataset.PrintSummaryFromEnvironment();
+            return;
+        }
 
 
         if (args.Length == 1 &&
@@ -468,111 +580,111 @@ if (args.Length == 1 &&
         "load-model",
         StringComparison.OrdinalIgnoreCase
     ))
-{
-    LoadedKanjiModel loadedModel =
-        ModelPersistence.LoadFromEnvironment();
+        {
+            LoadedKanjiModel loadedModel =
+                ModelPersistence.LoadFromEnvironment();
 
-    Console.WriteLine("Model loaded successfully.");
-    Console.WriteLine(
-        $"Architecture: " +
-        $"{loadedModel.Metadata.InputFeatureCount} → " +
-        $"{loadedModel.Metadata.HiddenNeuronCount1} → " +
-        $"{loadedModel.Metadata.HiddenNeuronCount2} → " +
-        $"{loadedModel.Metadata.OutputClassCount}"
-    );
+            Console.WriteLine("Model loaded successfully.");
+            Console.WriteLine(
+                $"Architecture: " +
+                $"{loadedModel.Metadata.InputFeatureCount} → " +
+                $"{loadedModel.Metadata.HiddenNeuronCount1} → " +
+                $"{loadedModel.Metadata.HiddenNeuronCount2} → " +
+                $"{loadedModel.Metadata.OutputClassCount}"
+            );
 
-    Console.WriteLine(
-        $"Classes: {string.Join(", ", loadedModel.Metadata.ClassKanji)}"
-    );
+            Console.WriteLine(
+                $"Classes: {string.Join(", ", loadedModel.Metadata.ClassKanji)}"
+            );
 
-string[] activeKanji =
-    kanjiDataset.GetClassKanji();
+            string[] activeKanji =
+                kanjiDataset.GetClassKanji();
 
-string[] activeFolders =
-    kanjiDataset.GetClassFolders();
+            string[] activeFolders =
+                kanjiDataset.GetClassFolders();
 
-if (loadedModel.Metadata.OutputClassCount !=
-    kanjiDataset.ClassCount ||
-    !loadedModel.Metadata.ClassKanji.SequenceEqual(activeKanji) ||
-    !loadedModel.Metadata.ClassFolders.SequenceEqual(activeFolders))
-{
-    throw new InvalidOperationException(
-        "The saved model class mapping does not match " +
-        "the active dataset manifest."
-    );
-}
-
-
-    KanjiImageDataset loadedDataset =
-    kanjiDataset.LoadAllFromEnvironment();
-
-KanjiDataSplit loadedSplit = KanjiSplit.Create(
-    loadedDataset,
-    trainPerClass: 144,
-    validationPerClass: 16,
-    seed: 12345
-);
+            if (loadedModel.Metadata.OutputClassCount !=
+                kanjiDataset.ClassCount ||
+                !loadedModel.Metadata.ClassKanji.SequenceEqual(activeKanji) ||
+                !loadedModel.Metadata.ClassFolders.SequenceEqual(activeFolders))
+            {
+                throw new InvalidOperationException(
+                    "The saved model class mapping does not match " +
+                    "the active dataset manifest."
+                );
+            }
 
 
-if (loadedSplit.TestInputs.GetLength(1) !=
-    loadedModel.Metadata.InputFeatureCount)
-{
-    throw new InvalidOperationException(
-        "The test image feature count does not match " +
-        "the saved model."
-    );
-}
+            KanjiImageDataset loadedDataset =
+            kanjiDataset.LoadAllFromEnvironment();
 
-ActivationFunction loadedActivationFunction1 =
-    new ActivationFunction();
+            KanjiDataSplit loadedSplit = KanjiSplit.Create(
+                loadedDataset,
+                trainPerClass: 144,
+                validationPerClass: 16,
+                seed: 12345
+            );
 
-ActivationFunction loadedActivationFunction2 =
-    new ActivationFunction();
 
-ActivationSoftmax loadedActivationSoftmax =
-    new ActivationSoftmax();
+            if (loadedSplit.TestInputs.GetLength(1) !=
+                loadedModel.Metadata.InputFeatureCount)
+            {
+                throw new InvalidOperationException(
+                    "The test image feature count does not match " +
+                    "the saved model."
+                );
+            }
 
-Loss loadedLoss = new Loss();
+            ActivationFunction loadedActivationFunction1 =
+                new ActivationFunction();
 
-double[,] loadedTestOutputs =
-    loadedModel.Layer1.forward(loadedSplit.TestInputs);
+            ActivationFunction loadedActivationFunction2 =
+                new ActivationFunction();
 
-loadedTestOutputs =
-    loadedActivationFunction1.Forward(loadedTestOutputs);
+            ActivationSoftmax loadedActivationSoftmax =
+                new ActivationSoftmax();
 
-loadedTestOutputs =
-    loadedModel.Layer2.forward(loadedTestOutputs);
+            Loss loadedLoss = new Loss();
 
-loadedTestOutputs =
-    loadedActivationFunction2.Forward(loadedTestOutputs);
+            double[,] loadedTestOutputs =
+                loadedModel.Layer1.forward(loadedSplit.TestInputs);
 
-loadedTestOutputs =
-    loadedModel.Layer3.forward(loadedTestOutputs);
+            loadedTestOutputs =
+                loadedActivationFunction1.Forward(loadedTestOutputs);
 
-loadedTestOutputs =
-    loadedActivationSoftmax.softmax(loadedTestOutputs);
+            loadedTestOutputs =
+                loadedModel.Layer2.forward(loadedTestOutputs);
 
-double loadedTestLoss = loadedLoss.Calculate(
-    loadedTestOutputs,
-    loadedSplit.TestLabels
-);
+            loadedTestOutputs =
+                loadedActivationFunction2.Forward(loadedTestOutputs);
 
-double loadedTestAccuracy = calculateAccuracy(
-    loadedTestOutputs,
-    loadedSplit.TestLabels
-);
+            loadedTestOutputs =
+                loadedModel.Layer3.forward(loadedTestOutputs);
 
-Console.WriteLine();
-Console.WriteLine(
-    $"Saved model test loss: {loadedTestLoss}"
-);
+            loadedTestOutputs =
+                loadedActivationSoftmax.softmax(loadedTestOutputs);
 
-Console.WriteLine(
-    $"Saved model test accuracy: {loadedTestAccuracy}"
-);
+            double loadedTestLoss = loadedLoss.Calculate(
+                loadedTestOutputs,
+                loadedSplit.TestLabels
+            );
 
-return;
-}
+            double loadedTestAccuracy = calculateAccuracy(
+                loadedTestOutputs,
+                loadedSplit.TestLabels
+            );
+
+            Console.WriteLine();
+            Console.WriteLine(
+                $"Saved model test loss: {loadedTestLoss}"
+            );
+
+            Console.WriteLine(
+                $"Saved model test accuracy: {loadedTestAccuracy}"
+            );
+
+            return;
+        }
 
         KanjiImageDataset dataset =
         kanjiDataset.LoadAllFromEnvironment();
@@ -582,31 +694,31 @@ return;
     validationPerClass: 16,
     seed: 12345
 );
-Console.WriteLine(
-    $"Training: {split.TrainInputs.GetLength(0)} x " +
-    $"{split.TrainInputs.GetLength(1)}"
-);
+        Console.WriteLine(
+            $"Training: {split.TrainInputs.GetLength(0)} x " +
+            $"{split.TrainInputs.GetLength(1)}"
+        );
 
-Console.WriteLine(
-    $"Validation: {split.ValidationInputs.GetLength(0)} x " +
-    $"{split.ValidationInputs.GetLength(1)}"
-);
+        Console.WriteLine(
+            $"Validation: {split.ValidationInputs.GetLength(0)} x " +
+            $"{split.ValidationInputs.GetLength(1)}"
+        );
 
-Console.WriteLine(
-    $"Test: {split.TestInputs.GetLength(0)} x " +
-    $"{split.TestInputs.GetLength(1)}"
-);
+        Console.WriteLine(
+            $"Test: {split.TestInputs.GetLength(0)} x " +
+            $"{split.TestInputs.GetLength(1)}"
+        );
 
 
 
-double[,] StartData = split.TrainInputs;
-int[] labels = split.TrainLabels;
-int outputClassCount = labels.Max() + 1;
-        
+        double[,] StartData = split.TrainInputs;
+        int[] labels = split.TrainLabels;
+        int outputClassCount = labels.Max() + 1;
+
         Layer layer1 = new Layer(StartData.GetLength(1), 128);
         Layer layer2 = new Layer(128, 64);
-        Layer layer3 = new Layer(64,outputClassCount);
-   
+        Layer layer3 = new Layer(64, outputClassCount);
+
 
 
         ActivationFunction activationFunction1 = new ActivationFunction();
@@ -644,86 +756,96 @@ int outputClassCount = labels.Max() + 1;
         const int batchSize = 64;
         Random batchRandom = new Random(67890);
 
-foreach (int epoch in Enumerable.Range(0, 100))
-{
-    int[] shuffledIndices =
-        BatchBuilder.CreateShuffledIndices(
-            StartData.GetLength(0),
-            batchRandom
-        );
+        AdamOptimizer adam1 = new AdamOptimizer(layer1);
+        AdamOptimizer adam2 = new AdamOptimizer(layer2);
+        AdamOptimizer adam3 = new AdamOptimizer(layer3);
 
-    double totalLoss = 0.0;
-    double totalCorrect = 0.0;
+        int adamStep = 0;
 
-    for (int startIndex = 0;
-         startIndex < StartData.GetLength(0);
-         startIndex += batchSize)
-    {
-        (double[,] batchInputs, int[] batchLabels) =
-            BatchBuilder.CreateBatch(
-                StartData,
-                labels,
-                shuffledIndices,
-                startIndex,
-                batchSize
+
+        foreach (int epoch in Enumerable.Range(0, 100))
+        {
+            int[] shuffledIndices =
+                BatchBuilder.CreateShuffledIndices(
+                    StartData.GetLength(0),
+                    batchRandom
+                );
+
+            double totalLoss = 0.0;
+            double totalCorrect = 0.0;
+
+            for (int startIndex = 0;
+                 startIndex < StartData.GetLength(0);
+                 startIndex += batchSize)
+            {
+                (double[,] batchInputs, int[] batchLabels) =
+                    BatchBuilder.CreateBatch(
+                        StartData,
+                        labels,
+                        shuffledIndices,
+                        startIndex,
+                        batchSize
+                    );
+
+                outputs = layer1.forward(batchInputs);
+                outputs = activationFunction1.Forward(outputs);
+
+                outputs = layer2.forward(outputs);
+                outputs = activationFunction2.Forward(outputs);
+
+                outputs = layer3.forward(outputs);
+                outputs = activationSoftmax.softmax(outputs);
+
+                lossValue = loss.Calculate(outputs, batchLabels);
+                accuracy = calculateAccuracy(outputs, batchLabels);
+
+                totalLoss += lossValue * batchSize;
+                totalCorrect += accuracy * batchSize;
+
+                dInputs = activationSoftmax.Backward(
+                    outputs,
+                    batchLabels
+                );
+
+                dInputs = layer3.backward(dInputs);
+
+                dInputs = activationFunction2.Backward(dInputs);
+                dInputs = layer2.backward(dInputs);
+
+                dInputs = activationFunction1.Backward(dInputs);
+                dInputs = layer1.backward(dInputs);
+
+                adamStep++;
+
+                adam1.Update(layer1, adamStep);
+                adam2.Update(layer2, adamStep);
+                adam3.Update(layer3, adamStep);
+
+            }
+
+            double epochLoss =
+                totalLoss / StartData.GetLength(0);
+
+            double epochAccuracy =
+                totalCorrect / StartData.GetLength(0);
+
+            Console.WriteLine(
+                $"Epoch: {epoch}, " +
+                $"Loss: {epochLoss}, " +
+                $"Accuracy: {epochAccuracy}"
             );
-
-        outputs = layer1.forward(batchInputs);
-        outputs = activationFunction1.Forward(outputs);
-
-        outputs = layer2.forward(outputs);
-        outputs = activationFunction2.Forward(outputs);
-
-        outputs = layer3.forward(outputs);
-        outputs = activationSoftmax.softmax(outputs);
-
-        lossValue = loss.Calculate(outputs, batchLabels);
-        accuracy = calculateAccuracy(outputs, batchLabels);
-
-        totalLoss += lossValue * batchSize;
-        totalCorrect += accuracy * batchSize;
-
-        dInputs = activationSoftmax.Backward(
-            outputs,
-            batchLabels
-        );
-
-        dInputs = layer3.backward(dInputs);
-
-        dInputs = activationFunction2.Backward(dInputs);
-        dInputs = layer2.backward(dInputs);
-
-        dInputs = activationFunction1.Backward(dInputs);
-        dInputs = layer1.backward(dInputs);
-
-        layer1.UpdateParameters(0.2);
-        layer2.UpdateParameters(0.2);
-        layer3.UpdateParameters(0.2);
-    }
-
-    double epochLoss =
-        totalLoss / StartData.GetLength(0);
-
-    double epochAccuracy =
-        totalCorrect / StartData.GetLength(0);
-
-    Console.WriteLine(
-        $"Epoch: {epoch}, " +
-        $"Loss: {epochLoss}, " +
-        $"Accuracy: {epochAccuracy}"
-    );
-}
+        }
 
 
- 
+
         double[,] testOutputs = layer1.forward(split.TestInputs);
         testOutputs = activationFunction1.Forward(testOutputs);
         testOutputs = layer2.forward(testOutputs);
         testOutputs = activationFunction2.Forward(testOutputs);
         testOutputs = layer3.forward(testOutputs);
         testOutputs = activationSoftmax.softmax(testOutputs);
-        double testLoss = loss.Calculate(testOutputs,split.TestLabels);
-        double testAccuracy = calculateAccuracy(testOutputs,split.TestLabels);
+        double testLoss = loss.Calculate(testOutputs, split.TestLabels);
+        double testAccuracy = calculateAccuracy(testOutputs, split.TestLabels);
         Console.WriteLine();
         Console.WriteLine($"Test loss: {testLoss}");
         Console.WriteLine($"Test accuracy: {testAccuracy}");
@@ -733,19 +855,19 @@ foreach (int epoch in Enumerable.Range(0, 100))
     "kanji-n5-32x32-v1.json"
 );
 
-ModelPersistence.Save(
-    modelPath,
-    layer1,
-    layer2,
-    layer3,
-    kanjiDataset.GetClassKanji(),
-    kanjiDataset.GetClassFolders()
-);
+        ModelPersistence.Save(
+            modelPath,
+            layer1,
+            layer2,
+            layer3,
+            kanjiDataset.GetClassKanji(),
+            kanjiDataset.GetClassFolders()
+        );
 
 
-Console.WriteLine(
-    $"Saved model: {Path.GetFullPath(modelPath)}"
-);
+        Console.WriteLine(
+            $"Saved model: {Path.GetFullPath(modelPath)}"
+        );
 
     }
 }

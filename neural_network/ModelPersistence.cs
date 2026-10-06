@@ -45,14 +45,14 @@ public static class ModelPersistence
             WriteIndented = true
         };
 
-public static void Save(
-    string modelPath,
-    Layer layer1,
-    Layer layer2,
-    Layer layer3,
-    string[] classKanji,
-    string[] classFolders
-)
+    public static void Save(
+        string modelPath,
+        Layer layer1,
+        Layer layer2,
+        Layer layer3,
+        string[] classKanji,
+        string[] classFolders
+    )
 
     {
         if (File.Exists(modelPath))
@@ -70,21 +70,21 @@ public static void Save(
         }
         if (layer2.weights.GetLength(1) !=
     layer3.weights.GetLength(0))
-{
-    throw new InvalidOperationException(
-        "Layer 2 and layer 3 dimensions do not connect correctly."
-    );
-}
+        {
+            throw new InvalidOperationException(
+                "Layer 2 and layer 3 dimensions do not connect correctly."
+            );
+        }
 
 
         if (classKanji.Length != layer3.weights.GetLength(1) ||
     classFolders.Length != layer3.weights.GetLength(1))
-{
-    throw new InvalidOperationException(
-        "The saved class mapping does not match " +
-        "the output layer width."
-    );
-}
+        {
+            throw new InvalidOperationException(
+                "The saved class mapping does not match " +
+                "the output layer width."
+            );
+        }
 
 
 
@@ -107,8 +107,8 @@ public static void Save(
 
             FlatteningOrder =
                 "row-major: featureIndex = y * 32 + x",
-                ClassKanji = (string[])classKanji.Clone(),
-                ClassFolders = (string[])classFolders.Clone(),
+            ClassKanji = (string[])classKanji.Clone(),
+            ClassFolders = (string[])classFolders.Clone(),
 
 
             Layer1Weights = ToMatrixData(layer1.weights),
@@ -120,8 +120,8 @@ public static void Save(
             Layer3Weights = ToMatrixData(layer3.weights),
             Layer3Biases = (double[])layer3.biases.Clone()
         };
-        
-        
+
+
         string? directory = Path.GetDirectoryName(modelPath);
 
         if (!string.IsNullOrWhiteSpace(directory))
@@ -137,190 +137,190 @@ public static void Save(
         File.WriteAllText(modelPath, json);
     }
     public static LoadedKanjiModel LoadFromEnvironment()
-{
-    string? modelPath =
-        Environment.GetEnvironmentVariable("KANJI_MODEL_PATH");
-
-    if (string.IsNullOrWhiteSpace(modelPath))
     {
-        throw new InvalidOperationException(
-            "KANJI_MODEL_PATH is not set."
-        );
+        string? modelPath =
+            Environment.GetEnvironmentVariable("KANJI_MODEL_PATH");
+
+        if (string.IsNullOrWhiteSpace(modelPath))
+        {
+            throw new InvalidOperationException(
+                "KANJI_MODEL_PATH is not set."
+            );
+        }
+
+        return Load(modelPath);
     }
 
-    return Load(modelPath);
-}
-
-public static LoadedKanjiModel Load(string modelPath)
-{
-    if (!File.Exists(modelPath))
+    public static LoadedKanjiModel Load(string modelPath)
     {
-        throw new FileNotFoundException(
-            $"Saved model was not found: {modelPath}"
+        if (!File.Exists(modelPath))
+        {
+            throw new FileNotFoundException(
+                $"Saved model was not found: {modelPath}"
+            );
+        }
+
+        string json = File.ReadAllText(modelPath);
+
+        ModelCheckpoint? checkpoint =
+            JsonSerializer.Deserialize<ModelCheckpoint>(json);
+
+        if (checkpoint is null)
+        {
+            throw new InvalidOperationException(
+                "The model checkpoint could not be read."
+            );
+        }
+
+        ValidateCheckpoint(checkpoint);
+
+        Layer layer1 = new Layer(
+            checkpoint.InputFeatureCount,
+            checkpoint.HiddenNeuronCount1
         );
-    }
 
-    string json = File.ReadAllText(modelPath);
-
-    ModelCheckpoint? checkpoint =
-        JsonSerializer.Deserialize<ModelCheckpoint>(json);
-
-    if (checkpoint is null)
-    {
-        throw new InvalidOperationException(
-            "The model checkpoint could not be read."
+        Layer layer2 = new Layer(
+            checkpoint.HiddenNeuronCount1,
+            checkpoint.HiddenNeuronCount2
         );
-    }
-
-    ValidateCheckpoint(checkpoint);
-
-    Layer layer1 = new Layer(
-        checkpoint.InputFeatureCount,
-        checkpoint.HiddenNeuronCount1
-    );
-
-    Layer layer2 = new Layer(
-        checkpoint.HiddenNeuronCount1,
-        checkpoint.HiddenNeuronCount2
-    );
         Layer layer3 = new Layer(
         checkpoint.HiddenNeuronCount2,
         checkpoint.OutputClassCount
     );
 
-    layer1.weights = FromMatrixData(checkpoint.Layer1Weights);
-    layer1.biases = (double[])checkpoint.Layer1Biases.Clone();
+        layer1.weights = FromMatrixData(checkpoint.Layer1Weights);
+        layer1.biases = (double[])checkpoint.Layer1Biases.Clone();
 
-    layer2.weights = FromMatrixData(checkpoint.Layer2Weights);
-    layer2.biases = (double[])checkpoint.Layer2Biases.Clone();
+        layer2.weights = FromMatrixData(checkpoint.Layer2Weights);
+        layer2.biases = (double[])checkpoint.Layer2Biases.Clone();
 
-    layer3.weights = FromMatrixData(checkpoint.Layer3Weights);
-    layer3.biases = (double[])checkpoint.Layer3Biases.Clone();
+        layer3.weights = FromMatrixData(checkpoint.Layer3Weights);
+        layer3.biases = (double[])checkpoint.Layer3Biases.Clone();
 
-    return new LoadedKanjiModel(
-        layer1,
-        layer2,
-        layer3,
-        checkpoint
-    );
-}
-
-private static void ValidateCheckpoint(
-    ModelCheckpoint checkpoint
-)
-{
-    if (checkpoint.FormatVersion != 2)
-    {
-        throw new InvalidOperationException(
-            $"Unsupported checkpoint version: " +
-            $"{checkpoint.FormatVersion}"
+        return new LoadedKanjiModel(
+            layer1,
+            layer2,
+            layer3,
+            checkpoint
         );
     }
 
-    if (checkpoint.Layer1Weights.Rows !=
-        checkpoint.InputFeatureCount ||
-        checkpoint.Layer1Weights.Columns !=
-        checkpoint.HiddenNeuronCount1)
+    private static void ValidateCheckpoint(
+        ModelCheckpoint checkpoint
+    )
     {
-        throw new InvalidOperationException(
-            "Layer 1 weight dimensions do not match " +
-            "the saved architecture."
-        );
-    }
-
-    if (checkpoint.Layer2Weights.Rows !=
-        checkpoint.HiddenNeuronCount1 ||
-        checkpoint.Layer2Weights.Columns !=
-        checkpoint.HiddenNeuronCount2)
-    {
-        throw new InvalidOperationException(
-            "Layer 2 weight dimensions do not match " +
-            "the saved architecture."
-        );
-    }
-    if (checkpoint.Layer3Weights.Rows !=
-    checkpoint.HiddenNeuronCount2 ||
-    checkpoint.Layer3Weights.Columns !=
-    checkpoint.OutputClassCount)
-{
-    throw new InvalidOperationException(
-        "Layer 3 weight dimensions do not match " +
-        "the saved architecture."
-    );
-}
-
-    if (checkpoint.Layer1Biases.Length !=
-        checkpoint.HiddenNeuronCount1)
-    {
-        throw new InvalidOperationException(
-            "Layer 1 bias count is invalid."
-        );
-    }
-
-    if (checkpoint.Layer2Biases.Length !=
-        checkpoint.HiddenNeuronCount2)
-    {
-        throw new InvalidOperationException(
-            "Layer 2 bias count is invalid."
-        );
-    }
-    if (checkpoint.Layer3Biases.Length !=
-    checkpoint.OutputClassCount)
-{
-    throw new InvalidOperationException(
-        "Layer 3 bias count is invalid."
-    );
-}
-    if (checkpoint.ClassKanji.Length !=
-        checkpoint.OutputClassCount)
-    {
-        throw new InvalidOperationException(
-            "The saved class mapping does not match " +
-            "the number of output neurons."
-        );
-    }
-}
-
-private static double[,] FromMatrixData(MatrixData matrixData)
-{
-    if (matrixData.Rows <= 0 || matrixData.Columns <= 0)
-    {
-        throw new InvalidOperationException(
-            "Saved matrix dimensions must be positive."
-        );
-    }
-
-    int expectedValueCount =
-        matrixData.Rows * matrixData.Columns;
-
-    if (matrixData.Values.Length != expectedValueCount)
-    {
-        throw new InvalidOperationException(
-            "Saved matrix value count does not match " +
-            "its dimensions."
-        );
-    }
-
-    double[,] matrix = new double[
-        matrixData.Rows,
-        matrixData.Columns
-        ];
-
-    for (int row = 0; row < matrixData.Rows; row++)
-    {
-        for (int column = 0;
-             column < matrixData.Columns;
-             column++)
+        if (checkpoint.FormatVersion != 2)
         {
-            int index = row * matrixData.Columns + column;
+            throw new InvalidOperationException(
+                $"Unsupported checkpoint version: " +
+                $"{checkpoint.FormatVersion}"
+            );
+        }
 
-            matrix[row, column] =
-                matrixData.Values[index];
+        if (checkpoint.Layer1Weights.Rows !=
+            checkpoint.InputFeatureCount ||
+            checkpoint.Layer1Weights.Columns !=
+            checkpoint.HiddenNeuronCount1)
+        {
+            throw new InvalidOperationException(
+                "Layer 1 weight dimensions do not match " +
+                "the saved architecture."
+            );
+        }
+
+        if (checkpoint.Layer2Weights.Rows !=
+            checkpoint.HiddenNeuronCount1 ||
+            checkpoint.Layer2Weights.Columns !=
+            checkpoint.HiddenNeuronCount2)
+        {
+            throw new InvalidOperationException(
+                "Layer 2 weight dimensions do not match " +
+                "the saved architecture."
+            );
+        }
+        if (checkpoint.Layer3Weights.Rows !=
+        checkpoint.HiddenNeuronCount2 ||
+        checkpoint.Layer3Weights.Columns !=
+        checkpoint.OutputClassCount)
+        {
+            throw new InvalidOperationException(
+                "Layer 3 weight dimensions do not match " +
+                "the saved architecture."
+            );
+        }
+
+        if (checkpoint.Layer1Biases.Length !=
+            checkpoint.HiddenNeuronCount1)
+        {
+            throw new InvalidOperationException(
+                "Layer 1 bias count is invalid."
+            );
+        }
+
+        if (checkpoint.Layer2Biases.Length !=
+            checkpoint.HiddenNeuronCount2)
+        {
+            throw new InvalidOperationException(
+                "Layer 2 bias count is invalid."
+            );
+        }
+        if (checkpoint.Layer3Biases.Length !=
+        checkpoint.OutputClassCount)
+        {
+            throw new InvalidOperationException(
+                "Layer 3 bias count is invalid."
+            );
+        }
+        if (checkpoint.ClassKanji.Length !=
+            checkpoint.OutputClassCount)
+        {
+            throw new InvalidOperationException(
+                "The saved class mapping does not match " +
+                "the number of output neurons."
+            );
         }
     }
 
-    return matrix;
-}
+    private static double[,] FromMatrixData(MatrixData matrixData)
+    {
+        if (matrixData.Rows <= 0 || matrixData.Columns <= 0)
+        {
+            throw new InvalidOperationException(
+                "Saved matrix dimensions must be positive."
+            );
+        }
+
+        int expectedValueCount =
+            matrixData.Rows * matrixData.Columns;
+
+        if (matrixData.Values.Length != expectedValueCount)
+        {
+            throw new InvalidOperationException(
+                "Saved matrix value count does not match " +
+                "its dimensions."
+            );
+        }
+
+        double[,] matrix = new double[
+            matrixData.Rows,
+            matrixData.Columns
+            ];
+
+        for (int row = 0; row < matrixData.Rows; row++)
+        {
+            for (int column = 0;
+                 column < matrixData.Columns;
+                 column++)
+            {
+                int index = row * matrixData.Columns + column;
+
+                matrix[row, column] =
+                    matrixData.Values[index];
+            }
+        }
+
+        return matrix;
+    }
 
 
     private static MatrixData ToMatrixData(double[,] matrix)
