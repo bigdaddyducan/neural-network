@@ -12,7 +12,8 @@ public sealed class ModelCheckpoint
     public int FormatVersion { get; set; }
 
     public int InputFeatureCount { get; set; }
-    public int HiddenNeuronCount { get; set; }
+    public int HiddenNeuronCount1 { get; set; }
+    public int HiddenNeuronCount2 { get; set; }
     public int OutputClassCount { get; set; }
 
     public int SourceImageWidth { get; set; }
@@ -31,6 +32,9 @@ public sealed class ModelCheckpoint
 
     public MatrixData Layer2Weights { get; set; } = new MatrixData();
     public double[] Layer2Biases { get; set; } = new double[0];
+
+    public MatrixData Layer3Weights { get; set; } = new MatrixData();
+    public double[] Layer3Biases { get; set; } = new double[0];
 }
 
 public static class ModelPersistence
@@ -45,6 +49,7 @@ public static void Save(
     string modelPath,
     Layer layer1,
     Layer layer2,
+    Layer layer3,
     string[] classKanji,
     string[] classFolders
 )
@@ -79,19 +84,20 @@ public static void Save(
             FormatVersion = 1,
 
             InputFeatureCount = layer1.weights.GetLength(0),
-            HiddenNeuronCount = layer1.weights.GetLength(1),
-            OutputClassCount = layer2.weights.GetLength(1),
+            HiddenNeuronCount1 = layer1.weights.GetLength(1),
+            HiddenNeuronCount2 = layer2.weights.GetLength(1),
+            OutputClassCount = layer3.weights.GetLength(1),
 
             SourceImageWidth = 128,
             SourceImageHeight = 127,
-            TargetImageWidth = 64,
-            TargetImageHeight = 64,
+            TargetImageWidth = 32,
+            TargetImageHeight = 32,
 
             PixelConvention =
                 "grayscale converted to ink strength: 1.0 - grayscale",
 
             FlatteningOrder =
-                "row-major: featureIndex = y * 64 + x",
+                "row-major: featureIndex = y * 32 + x",
                 ClassKanji = (string[])classKanji.Clone(),
                 ClassFolders = (string[])classFolders.Clone(),
 
@@ -100,7 +106,10 @@ public static void Save(
             Layer1Biases = (double[])layer1.biases.Clone(),
 
             Layer2Weights = ToMatrixData(layer2.weights),
-            Layer2Biases = (double[])layer2.biases.Clone()
+            Layer2Biases = (double[])layer2.biases.Clone(),
+
+            Layer3Weights = ToMatrixData(layer3.weights),
+            Layer3Biases = (double[])layer3.biases.Clone()
         };
         
         
@@ -158,11 +167,15 @@ public static LoadedKanjiModel Load(string modelPath)
 
     Layer layer1 = new Layer(
         checkpoint.InputFeatureCount,
-        checkpoint.HiddenNeuronCount
+        checkpoint.HiddenNeuronCount1
     );
 
     Layer layer2 = new Layer(
-        checkpoint.HiddenNeuronCount,
+        checkpoint.HiddenNeuronCount1,
+        checkpoint.HiddenNeuronCount2
+    );
+        Layer layer3 = new Layer(
+        checkpoint.HiddenNeuronCount2,
         checkpoint.OutputClassCount
     );
 
@@ -172,9 +185,13 @@ public static LoadedKanjiModel Load(string modelPath)
     layer2.weights = FromMatrixData(checkpoint.Layer2Weights);
     layer2.biases = (double[])checkpoint.Layer2Biases.Clone();
 
+    layer3.weights = FromMatrixData(checkpoint.Layer3Weights);
+    layer3.biases = (double[])checkpoint.Layer3Biases.Clone();
+
     return new LoadedKanjiModel(
         layer1,
         layer2,
+        layer3,
         checkpoint
     );
 }
@@ -194,7 +211,7 @@ private static void ValidateCheckpoint(
     if (checkpoint.Layer1Weights.Rows !=
         checkpoint.InputFeatureCount ||
         checkpoint.Layer1Weights.Columns !=
-        checkpoint.HiddenNeuronCount)
+        checkpoint.HiddenNeuronCount1)
     {
         throw new InvalidOperationException(
             "Layer 1 weight dimensions do not match " +
@@ -203,9 +220,9 @@ private static void ValidateCheckpoint(
     }
 
     if (checkpoint.Layer2Weights.Rows !=
-        checkpoint.HiddenNeuronCount ||
+        checkpoint.HiddenNeuronCount1 ||
         checkpoint.Layer2Weights.Columns !=
-        checkpoint.OutputClassCount)
+        checkpoint.HiddenNeuronCount2)
     {
         throw new InvalidOperationException(
             "Layer 2 weight dimensions do not match " +
@@ -214,7 +231,7 @@ private static void ValidateCheckpoint(
     }
 
     if (checkpoint.Layer1Biases.Length !=
-        checkpoint.HiddenNeuronCount)
+        checkpoint.HiddenNeuronCount1)
     {
         throw new InvalidOperationException(
             "Layer 1 bias count is invalid."
@@ -222,7 +239,7 @@ private static void ValidateCheckpoint(
     }
 
     if (checkpoint.Layer2Biases.Length !=
-        checkpoint.OutputClassCount)
+        checkpoint.HiddenNeuronCount2)
     {
         throw new InvalidOperationException(
             "Layer 2 bias count is invalid."

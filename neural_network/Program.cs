@@ -523,7 +523,8 @@ Console.WriteLine(
    
 
 
-        ActivationFunction activationFunction = new ActivationFunction();
+        ActivationFunction activationFunction1 = new ActivationFunction();
+        ActivationFunction activationFunction2 = new ActivationFunction();
         ActivationSoftmax activationSoftmax = new ActivationSoftmax();
         Loss loss = new Loss();
         double[,] outputs = new double[StartData.GetLength(0), StartData.GetLength(1)];
@@ -557,18 +558,18 @@ Console.WriteLine(
         foreach (int epoch in Enumerable.Range(0, 201))
         {
             outputs = layer1.forward(StartData); 
-            outputs = activationFunction.Forward(outputs);
+            outputs = activationFunction1.Forward(outputs);
             outputs = layer2.forward(outputs);
-            outputs = activationFunction.Forward(outputs);
+            outputs = activationFunction2.Forward(outputs);
             outputs = layer3.forward(outputs);
             outputs = activationSoftmax.softmax(outputs);
             lossValue = loss.Calculate(outputs, labels);
             accuracy = calculateAccuracy(outputs, labels);
             dInputs = activationSoftmax.Backward(outputs, labels);
             dInputs = layer3.backward(dInputs);
-            dInputs = activationFunction.Backward(dInputs);
+            dInputs = activationFunction2.Backward(dInputs);
             dInputs = layer2.backward(dInputs);
-            dInputs = activationFunction.Backward(dInputs);
+            dInputs = activationFunction1.Backward(dInputs);
             dInputs = layer1.backward(dInputs);
             layer1.UpdateParameters(0.2);
             layer2.UpdateParameters(0.2);  
@@ -582,9 +583,9 @@ Console.WriteLine(
 
  
         double[,] testOutputs = layer1.forward(split.TestInputs);
-        testOutputs = activationFunction.Forward(testOutputs);
+        testOutputs = activationFunction1.Forward(testOutputs);
         testOutputs = layer2.forward(testOutputs);
-        testOutputs = activationFunction.Forward(testOutputs);
+        testOutputs = activationFunction2.Forward(testOutputs);
         testOutputs = layer3.forward(testOutputs);
         testOutputs = activationSoftmax.softmax(testOutputs);
         double testLoss = loss.Calculate(testOutputs,split.TestLabels);
