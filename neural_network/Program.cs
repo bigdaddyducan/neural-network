@@ -407,7 +407,8 @@ if (args.Length == 1 &&
     Console.WriteLine(
         $"Architecture: " +
         $"{loadedModel.Metadata.InputFeatureCount} → " +
-        $"{loadedModel.Metadata.HiddenNeuronCount} → " +
+        $"{loadedModel.Metadata.HiddenNeuronCount1} → " +
+        $"{loadedModel.Metadata.HiddenNeuronCount2} → " +
         $"{loadedModel.Metadata.OutputClassCount}"
     );
 
