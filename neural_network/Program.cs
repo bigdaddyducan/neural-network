@@ -597,7 +597,7 @@ Console.WriteLine(
 
         string modelPath = Path.Combine(
     "models",
-    "kanji-n5-v1.json"
+    "kanji-n5-32x32-v1.json"
 );
 
 ModelPersistence.Save(
