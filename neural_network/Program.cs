@@ -488,6 +488,25 @@ public sealed class AdamOptimizer
         biasSecondMoment = new double[layer.biases.Length];
     }
 
+
+    public sealed class LayerSnapshot
+    {
+        private readonly double[,] savedWeights;
+        private readonly double[] savedBiases;
+
+        public LayerSnapshot(Layer layer)
+        {
+            savedWeights = (double[,])layer.weights.Clone();
+            savedBiases = (double[])layer.biases.Clone();
+        }
+
+        public void Restore(Layer layer)
+        {
+            layer.weights = (double[,])savedWeights.Clone();
+            layer.biases = (double[])savedBiases.Clone();
+        }
+    }
+
     public void Update(Layer layer, int step)
     {
         double firstBiasCorrection =
@@ -762,6 +781,17 @@ class program
 
         int adamStep = 0;
 
+        const int earlyStoppingPatience = 10;
+
+        double bestValidationLoss = double.PositiveInfinity;
+
+        int epochsWithoutImprovement = 0;
+
+        LayerSnapshot? bestLayer1 = null;
+        LayerSnapshot? bestLayer2 = null;
+        LayerSnapshot? bestLayer3 = null;
+
+
 
         foreach (int epoch in Enumerable.Range(0, 100))
         {
@@ -822,6 +852,48 @@ class program
                 adam3.Update(layer3, adamStep);
 
             }
+            double[,] validationOutputs =
+    layer1.forward(split.ValidationInputs);
+
+            validationOutputs =
+                activationFunction1.Forward(validationOutputs);
+
+            validationOutputs =
+                layer2.forward(validationOutputs);
+
+            validationOutputs =
+                activationFunction2.Forward(validationOutputs);
+
+            validationOutputs =
+                layer3.forward(validationOutputs);
+
+            validationOutputs =
+                activationSoftmax.softmax(validationOutputs);
+
+            double validationLoss = loss.Calculate(
+                validationOutputs,
+                split.ValidationLabels
+            );
+
+            double validationAccuracy = calculateAccuracy(
+                validationOutputs,
+                split.ValidationLabels
+            );
+
+            if (validationLoss < bestValidationLoss)
+            {
+                bestValidationLoss = validationLoss;
+
+                bestLayer1 = new LayerSnapshot(layer1);
+                bestLayer2 = new LayerSnapshot(layer2);
+                bestLayer3 = new LayerSnapshot(layer3);
+
+                epochsWithoutImprovement = 0;
+            }
+            else
+            {
+                epochsWithoutImprovement++;
+            }
 
             double epochLoss =
                 totalLoss / StartData.GetLength(0);
@@ -831,11 +903,40 @@ class program
 
             Console.WriteLine(
                 $"Epoch: {epoch}, " +
-                $"Loss: {epochLoss}, " +
-                $"Accuracy: {epochAccuracy}"
+                $"Training loss: {epochLoss}, " +
+                $"Training accuracy: {epochAccuracy}, " +
+                $"Validation loss: {validationLoss}, " +
+                $"Validation accuracy: {validationAccuracy}, " +
+                $"No improvement: {epochsWithoutImprovement}/" +
+                $"{earlyStoppingPatience}"
+                );
+            if (epochsWithoutImprovement >= earlyStoppingPatience)
+            {
+                Console.WriteLine(
+                    "Early stopping: validation loss did not improve " +
+                    $"for {earlyStoppingPatience} consecutive epochs."
+                );
+
+                break;
+            }
+
+        }
+
+        if (bestLayer1 is null || bestLayer2 is null || bestLayer3 is null)
+        {
+            throw new InvalidOperationException(
+                "No best validation model was recorded."
             );
         }
 
+        bestLayer1.Restore(layer1);
+        bestLayer2.Restore(layer2);
+        bestLayer3.Restore(layer3);
+
+        Console.WriteLine(
+            $"Restored best validation model. " +
+            $"Best validation loss: {bestValidationLoss}"
+        );
 
 
         double[,] testOutputs = layer1.forward(split.TestInputs);
