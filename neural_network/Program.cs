@@ -517,8 +517,9 @@ Console.WriteLine(
 );
 
         
-        Layer layer1 = new Layer(StartData.GetLength(1), 30);
-        Layer layer2 = new Layer(30, outputClassCount);
+        Layer layer1 = new Layer(StartData.GetLength(1), 50);
+        Layer layer2 = new Layer(50, 50);
+        Layer layer3 = new Layer(50,outputClassCount);
    
 
 
@@ -557,16 +558,21 @@ Console.WriteLine(
         {
             outputs = layer1.forward(StartData); 
             outputs = activationFunction.Forward(outputs);
-            outputs = layer2.forward(outputs); 
+            outputs = layer2.forward(outputs);
+            outputs = activationFunction.Forward(outputs);
+            outputs = layer3.forward(outputs);
             outputs = activationSoftmax.softmax(outputs);
             lossValue = loss.Calculate(outputs, labels);
             accuracy = calculateAccuracy(outputs, labels);
             dInputs = activationSoftmax.Backward(outputs, labels);
+            dInputs = layer3.backward(dInputs);
+            dInputs = activationFunction.Backward(dInputs);
             dInputs = layer2.backward(dInputs);
             dInputs = activationFunction.Backward(dInputs);
             dInputs = layer1.backward(dInputs);
             layer1.UpdateParameters(0.2);
-            layer2.UpdateParameters(0.2);      
+            layer2.UpdateParameters(0.2);  
+            layer3.UpdateParameters(0.2);    
             
             if (epoch % 10 == 0)
             {
@@ -578,6 +584,8 @@ Console.WriteLine(
         double[,] testOutputs = layer1.forward(split.TestInputs);
         testOutputs = activationFunction.Forward(testOutputs);
         testOutputs = layer2.forward(testOutputs);
+        testOutputs = activationFunction.Forward(testOutputs);
+        testOutputs = layer3.forward(testOutputs);
         testOutputs = activationSoftmax.softmax(testOutputs);
         double testLoss = loss.Calculate(testOutputs,split.TestLabels);
         double testAccuracy = calculateAccuracy(testOutputs,split.TestLabels);
@@ -594,6 +602,7 @@ ModelPersistence.Save(
     modelPath,
     layer1,
     layer2,
+    layer3,
     kanjiDataset.GetClassKanji(),
     kanjiDataset.GetClassFolders()
 );

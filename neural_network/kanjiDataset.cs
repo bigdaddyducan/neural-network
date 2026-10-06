@@ -189,10 +189,10 @@ public static string[] GetClassFolders()
         {
             double[] features = LoadImageAsFeatures(imagePath);
 
-            if (features.Length != 4096)
+            if (features.Length != 1024)
             {
                 throw new InvalidOperationException(
-                    $"Expected 4096 features, got {features.Length}: {imagePath}"
+                    $"Expected 1024 features, got {features.Length}: {imagePath}"
                 );
             }
 
@@ -201,11 +201,11 @@ public static string[] GetClassFolders()
         }
     }
 
-    double[,] inputs = new double[featureRows.Count, 4096];
+    double[,] inputs = new double[featureRows.Count, 1024];
 
     for (int sample = 0; sample < featureRows.Count; sample++)
     {
-        for (int feature = 0; feature < 4096; feature++)
+        for (int feature = 0; feature < 1024; feature++)
         {
             inputs[sample, feature] = featureRows[sample][feature];
         }
@@ -296,8 +296,8 @@ Console.WriteLine(
     }
     private static double[] LoadImageAsFeatures(string imagePath)
     {
-    const int targetWidth = 64;
-    const int targetHeight = 64;
+    const int targetWidth = 32;
+    const int targetHeight = 32;
 
     using Bitmap original = new Bitmap(imagePath);
     using Bitmap resized = new Bitmap(targetWidth, targetHeight);
