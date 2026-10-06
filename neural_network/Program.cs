@@ -468,6 +468,7 @@ public sealed class AdamOptimizer
         double beta2 = 0.999,
         double epsilon = 1e-8
     )
+
     {
         this.learningRate = learningRate;
         this.beta1 = beta1;
@@ -486,25 +487,6 @@ public sealed class AdamOptimizer
 
         biasFirstMoment = new double[layer.biases.Length];
         biasSecondMoment = new double[layer.biases.Length];
-    }
-
-
-    public sealed class LayerSnapshot
-    {
-        private readonly double[,] savedWeights;
-        private readonly double[] savedBiases;
-
-        public LayerSnapshot(Layer layer)
-        {
-            savedWeights = (double[,])layer.weights.Clone();
-            savedBiases = (double[])layer.biases.Clone();
-        }
-
-        public void Restore(Layer layer)
-        {
-            layer.weights = (double[,])savedWeights.Clone();
-            layer.biases = (double[])savedBiases.Clone();
-        }
     }
 
     public void Update(Layer layer, int step)
@@ -576,8 +558,26 @@ public sealed class AdamOptimizer
                 (Math.Sqrt(correctedSecondMoment) + epsilon);
         }
     }
+
 }
 
+public sealed class LayerSnapshot
+{
+    private readonly double[,] savedWeights;
+    private readonly double[] savedBiases;
+
+    public LayerSnapshot(Layer layer)
+    {
+        savedWeights = (double[,])layer.weights.Clone();
+        savedBiases = (double[])layer.biases.Clone();
+    }
+
+    public void Restore(Layer layer)
+    {
+        layer.weights = (double[,])savedWeights.Clone();
+        layer.biases = (double[])savedBiases.Clone();
+    }
+}
 
 class program
 {
