@@ -350,6 +350,6 @@ private static double[,] FromMatrixData(MatrixData matrixData)
 public sealed record LoadedKanjiModel(
     Layer Layer1,
     Layer Layer2,
-    Layer layer3,
+    Layer Layer3,
     ModelCheckpoint Metadata
 );
