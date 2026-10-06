@@ -68,15 +68,24 @@ public static void Save(
                 "The two layer dimensions do not connect correctly."
             );
         }
+        if (layer2.weights.GetLength(1) !=
+    layer3.weights.GetLength(0))
+{
+    throw new InvalidOperationException(
+        "Layer 2 and layer 3 dimensions do not connect correctly."
+    );
+}
 
-        if (classKanji.Length != layer2.weights.GetLength(1) ||
-    classFolders.Length != layer2.weights.GetLength(1))
+
+        if (classKanji.Length != layer3.weights.GetLength(1) ||
+    classFolders.Length != layer3.weights.GetLength(1))
 {
     throw new InvalidOperationException(
         "The saved class mapping does not match " +
         "the output layer width."
     );
 }
+
 
 
         ModelCheckpoint checkpoint = new ModelCheckpoint
@@ -229,6 +238,16 @@ private static void ValidateCheckpoint(
             "the saved architecture."
         );
     }
+    if (checkpoint.Layer3Weights.Rows !=
+    checkpoint.HiddenNeuronCount2 ||
+    checkpoint.Layer3Weights.Columns !=
+    checkpoint.OutputClassCount)
+{
+    throw new InvalidOperationException(
+        "Layer 3 weight dimensions do not match " +
+        "the saved architecture."
+    );
+}
 
     if (checkpoint.Layer1Biases.Length !=
         checkpoint.HiddenNeuronCount1)
@@ -245,7 +264,13 @@ private static void ValidateCheckpoint(
             "Layer 2 bias count is invalid."
         );
     }
-
+    if (checkpoint.Layer3Biases.Length !=
+    checkpoint.OutputClassCount)
+{
+    throw new InvalidOperationException(
+        "Layer 3 bias count is invalid."
+    );
+}
     if (checkpoint.ClassKanji.Length !=
         checkpoint.OutputClassCount)
     {
