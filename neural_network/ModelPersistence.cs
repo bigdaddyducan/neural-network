@@ -90,7 +90,7 @@ public static void Save(
 
         ModelCheckpoint checkpoint = new ModelCheckpoint
         {
-            FormatVersion = 1,
+            FormatVersion = 2,
 
             InputFeatureCount = layer1.weights.GetLength(0),
             HiddenNeuronCount1 = layer1.weights.GetLength(1),
@@ -209,7 +209,7 @@ private static void ValidateCheckpoint(
     ModelCheckpoint checkpoint
 )
 {
-    if (checkpoint.FormatVersion != 1)
+    if (checkpoint.FormatVersion != 2)
     {
         throw new InvalidOperationException(
             $"Unsupported checkpoint version: " +

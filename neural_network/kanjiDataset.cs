@@ -286,7 +286,7 @@ public static string[] GetClassFolders()
 
     double[] features = LoadImageAsFeatures(firstImage);
 
-Console.WriteLine($"Resized dimensions: 64 x 64");
+Console.WriteLine($"Resized dimensions: 32 x 32");
 Console.WriteLine($"Feature count: {features.Length}");
 Console.WriteLine($"Ink range: {features.Min()} to {features.Max()}");
 Console.WriteLine(
