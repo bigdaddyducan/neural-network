@@ -262,15 +262,19 @@ public class Layer
 public sealed record KanjiDataSplit(
     double[,] TrainInputs,
     int[] TrainLabels,
+    double[,] ValidationInputs,
+    int[] ValidationLabels,
     double[,] TestInputs,
     int[] TestLabels
 );
+
 
 public static class KanjiSplit
 {
     public static KanjiDataSplit Create(
         KanjiImageDataset allData,
         int trainPerClass,
+        int validationPerClass,
         int seed
     )
     {
@@ -281,6 +285,7 @@ public static class KanjiSplit
 
         List<int> trainIndices = new List<int>();
         List<int> testIndices = new List<int>();
+        List<int> validationIndices = new List<int>();
 
         for (int label = 0; label < classCount; label++)
         {
@@ -309,20 +314,30 @@ public static class KanjiSplit
                 if (i < trainPerClass)
                 {
                     trainIndices.Add(classIndices[i]);
-                }
-                else
-                {
-                    testIndices.Add(classIndices[i]);
-                }
+                    }
+else if (i < trainPerClass + validationPerClass)
+{
+    validationIndices.Add(classIndices[i]);
+}
+else
+{
+    testIndices.Add(classIndices[i]);
+}
+
             }
         }
 
-        return new KanjiDataSplit(
-            CopyRows(allData.Inputs, allData.Labels, trainIndices),
-            CopyLabels(allData.Labels, trainIndices),
-            CopyRows(allData.Inputs, allData.Labels, testIndices),
-            CopyLabels(allData.Labels, testIndices)
-        );
+return new KanjiDataSplit(
+    CopyRows(allData.Inputs, allData.Labels, trainIndices),
+    CopyLabels(allData.Labels, trainIndices),
+
+    CopyRows(allData.Inputs, allData.Labels, validationIndices),
+    CopyLabels(allData.Labels, validationIndices),
+
+    CopyRows(allData.Inputs, allData.Labels, testIndices),
+    CopyLabels(allData.Labels, testIndices)
+);
+
     }
 
     private static void Shuffle(List<int> values, Random random)
@@ -376,6 +391,60 @@ public static class KanjiSplit
         }
 
         return result;
+    }
+}
+
+public static class BatchBuilder
+{
+    public static int[] CreateShuffledIndices(
+        int sampleCount,
+        Random random
+    )
+    {
+        int[] indices = Enumerable.Range(0, sampleCount).ToArray();
+
+        for (int index = indices.Length - 1; index > 0; index--)
+        {
+            int swapIndex = random.Next(index + 1);
+
+            int temporary = indices[index];
+            indices[index] = indices[swapIndex];
+            indices[swapIndex] = temporary;
+        }
+
+        return indices;
+    }
+
+    public static (double[,] Inputs, int[] Labels) CreateBatch(
+        double[,] sourceInputs,
+        int[] sourceLabels,
+        int[] shuffledIndices,
+        int startIndex,
+        int batchSize
+    )
+    {
+        int featureCount = sourceInputs.GetLength(1);
+
+        double[,] batchInputs = new double[batchSize, featureCount];
+        int[] batchLabels = new int[batchSize];
+
+        for (int batchRow = 0; batchRow < batchSize; batchRow++)
+        {
+            int sourceRow = shuffledIndices[startIndex + batchRow];
+
+            for (int feature = 0;
+                 feature < featureCount;
+                 feature++)
+            {
+                batchInputs[batchRow, feature] =
+                    sourceInputs[sourceRow, feature];
+            }
+
+            batchLabels[batchRow] =
+                sourceLabels[sourceRow];
+        }
+
+        return (batchInputs, batchLabels);
     }
 }
 
@@ -439,9 +508,11 @@ if (loadedModel.Metadata.OutputClassCount !=
 
 KanjiDataSplit loadedSplit = KanjiSplit.Create(
     loadedDataset,
-    trainPerClass: 160,
+    trainPerClass: 144,
+    validationPerClass: 16,
     seed: 12345
 );
+
 
 if (loadedSplit.TestInputs.GetLength(1) !=
     loadedModel.Metadata.InputFeatureCount)
@@ -507,18 +578,18 @@ return;
         kanjiDataset.LoadAllFromEnvironment();
         KanjiDataSplit split = KanjiSplit.Create(
     dataset,
-    trainPerClass: 160,
+    trainPerClass: 144,
+    validationPerClass: 16,
     seed: 12345
 );
-
-double[,] StartData = split.TrainInputs;
-int[] labels = split.TrainLabels;
-int outputClassCount = labels.Max() + 1;
-
-
 Console.WriteLine(
     $"Training: {split.TrainInputs.GetLength(0)} x " +
     $"{split.TrainInputs.GetLength(1)}"
+);
+
+Console.WriteLine(
+    $"Validation: {split.ValidationInputs.GetLength(0)} x " +
+    $"{split.ValidationInputs.GetLength(1)}"
 );
 
 Console.WriteLine(
@@ -526,10 +597,15 @@ Console.WriteLine(
     $"{split.TestInputs.GetLength(1)}"
 );
 
+
+
+double[,] StartData = split.TrainInputs;
+int[] labels = split.TrainLabels;
+int outputClassCount = labels.Max() + 1;
         
-        Layer layer1 = new Layer(StartData.GetLength(1), 50);
-        Layer layer2 = new Layer(50, 50);
-        Layer layer3 = new Layer(50,outputClassCount);
+        Layer layer1 = new Layer(StartData.GetLength(1), 128);
+        Layer layer2 = new Layer(128, 64);
+        Layer layer3 = new Layer(64,outputClassCount);
    
 
 
@@ -565,31 +641,79 @@ Console.WriteLine(
             return (double)correctPredictions / outputs.GetLength(0);
         }
 
-        foreach (int epoch in Enumerable.Range(0, 201))
-        {
-            outputs = layer1.forward(StartData); 
-            outputs = activationFunction1.Forward(outputs);
-            outputs = layer2.forward(outputs);
-            outputs = activationFunction2.Forward(outputs);
-            outputs = layer3.forward(outputs);
-            outputs = activationSoftmax.softmax(outputs);
-            lossValue = loss.Calculate(outputs, labels);
-            accuracy = calculateAccuracy(outputs, labels);
-            dInputs = activationSoftmax.Backward(outputs, labels);
-            dInputs = layer3.backward(dInputs);
-            dInputs = activationFunction2.Backward(dInputs);
-            dInputs = layer2.backward(dInputs);
-            dInputs = activationFunction1.Backward(dInputs);
-            dInputs = layer1.backward(dInputs);
-            layer1.UpdateParameters(0.2);
-            layer2.UpdateParameters(0.2);  
-            layer3.UpdateParameters(0.2);    
-            
-            if (epoch % 10 == 0)
-            {
-                Console.WriteLine($"Epoch: {epoch}, Loss: {lossValue}, Accuracy: {accuracy}");
-            }
-        }
+        const int batchSize = 64;
+        Random batchRandom = new Random(67890);
+
+foreach (int epoch in Enumerable.Range(0, 100))
+{
+    int[] shuffledIndices =
+        BatchBuilder.CreateShuffledIndices(
+            StartData.GetLength(0),
+            batchRandom
+        );
+
+    double totalLoss = 0.0;
+    double totalCorrect = 0.0;
+
+    for (int startIndex = 0;
+         startIndex < StartData.GetLength(0);
+         startIndex += batchSize)
+    {
+        (double[,] batchInputs, int[] batchLabels) =
+            BatchBuilder.CreateBatch(
+                StartData,
+                labels,
+                shuffledIndices,
+                startIndex,
+                batchSize
+            );
+
+        outputs = layer1.forward(batchInputs);
+        outputs = activationFunction1.Forward(outputs);
+
+        outputs = layer2.forward(outputs);
+        outputs = activationFunction2.Forward(outputs);
+
+        outputs = layer3.forward(outputs);
+        outputs = activationSoftmax.softmax(outputs);
+
+        lossValue = loss.Calculate(outputs, batchLabels);
+        accuracy = calculateAccuracy(outputs, batchLabels);
+
+        totalLoss += lossValue * batchSize;
+        totalCorrect += accuracy * batchSize;
+
+        dInputs = activationSoftmax.Backward(
+            outputs,
+            batchLabels
+        );
+
+        dInputs = layer3.backward(dInputs);
+
+        dInputs = activationFunction2.Backward(dInputs);
+        dInputs = layer2.backward(dInputs);
+
+        dInputs = activationFunction1.Backward(dInputs);
+        dInputs = layer1.backward(dInputs);
+
+        layer1.UpdateParameters(0.2);
+        layer2.UpdateParameters(0.2);
+        layer3.UpdateParameters(0.2);
+    }
+
+    double epochLoss =
+        totalLoss / StartData.GetLength(0);
+
+    double epochAccuracy =
+        totalCorrect / StartData.GetLength(0);
+
+    Console.WriteLine(
+        $"Epoch: {epoch}, " +
+        $"Loss: {epochLoss}, " +
+        $"Accuracy: {epochAccuracy}"
+    );
+}
+
 
  
         double[,] testOutputs = layer1.forward(split.TestInputs);
