@@ -452,7 +452,10 @@ if (loadedSplit.TestInputs.GetLength(1) !=
     );
 }
 
-ActivationFunction loadedActivationFunction =
+ActivationFunction loadedActivationFunction1 =
+    new ActivationFunction();
+
+ActivationFunction loadedActivationFunction2 =
     new ActivationFunction();
 
 ActivationSoftmax loadedActivationSoftmax =
@@ -464,10 +467,16 @@ double[,] loadedTestOutputs =
     loadedModel.Layer1.forward(loadedSplit.TestInputs);
 
 loadedTestOutputs =
-    loadedActivationFunction.Forward(loadedTestOutputs);
+    loadedActivationFunction1.Forward(loadedTestOutputs);
 
 loadedTestOutputs =
     loadedModel.Layer2.forward(loadedTestOutputs);
+
+loadedTestOutputs =
+    loadedActivationFunction2.Forward(loadedTestOutputs);
+
+loadedTestOutputs =
+    loadedModel.Layer3.forward(loadedTestOutputs);
 
 loadedTestOutputs =
     loadedActivationSoftmax.softmax(loadedTestOutputs);
